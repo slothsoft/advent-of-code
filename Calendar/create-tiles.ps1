@@ -9,6 +9,9 @@ $outputFile=$args[1]
 $calendarJson = (gc "$PSScriptRoot\calendar.json" -encoding utf8) | ConvertFrom-Json
 
 $environmentJson = (gc "$PSScriptRoot\environment.json" -encoding utf8) | ConvertFrom-Json
+if (!$environmentJson.Cookie) {
+    throw "Environment file with cookie was not found!"
+}
 
 $webClient = new-object system.net.webclient
 $webClient.Headers.add("Cookie", -join("session=", $environmentJson.Cookie))
@@ -25,6 +28,7 @@ foreach ($codeSet in $calendarJson.CodeSets) {
     $year = $codeSet.Year
     $language = $codeSet.Language
     $directory = $codeSet.Directory
+    $prefix = $codeSet.Prefix
     
     $tilesForYear = "$tilesFolder\$year"
     if (!(Test-Path -Path $tilesForYear)) {
@@ -39,13 +43,11 @@ foreach ($codeSet in $calendarJson.CodeSets) {
     if (!$color) {
         $color = "#FF0000"
     }
-    
-    $dayFolders = Get-ChildItem "$PSScriptRoot\..\$directory" -Directory -Filter *
-
+      
     # Read my Leaderboard
 
     $leaderboardContent = $webClient.DownloadString("https://adventofcode.com/$year/leaderboard/self")
-    # $leaderboardContent = [string] (gc "$PSScriptRoot\Examples\leaderboard-2022.html" -encoding utf8)
+    # $leaderboardContent = [string] (gc "$PSScriptRoot\Examples\leaderboard-$year.html" -encoding utf8)
     
     $regex = '\d{1,2}\s+[^\s]+\s+\d+\s+\d+\s+[^\s]+\s+\d+\s+\d+'
     $dailyScores = @{ }
@@ -61,11 +63,21 @@ foreach ($codeSet in $calendarJson.CodeSets) {
             Part2Score = [int] $scoreSplit[6]
         }
     }
-
+	
+	# Find the correct folders with source code
+	
+    $dayFolders = Get-ChildItem "$PSScriptRoot\..\$directory" -Directory -Filter "$prefix*"
+	
     foreach ($file in $dayFolders) {
-        $day = ""
         $folderName = $file.Name
-        if ([int]::TryParse($folderName,[ref]$day))
+		if ($prefix) {
+			$baseFileName = $folderName -replace $prefix, ''
+		} else {
+			$baseFileName = $folderName
+		}
+		
+        $day = ""
+        if ([int]::TryParse($baseFileName, [ref]$day))
         {
             $dayWithZero = '{0:d2}'-f $day
             if ($dailyScores.Contains($day))
