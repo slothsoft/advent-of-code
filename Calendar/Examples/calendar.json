@@ -1,0 +1,19 @@
+{
+  "CodeSets": [
+    {
+      "Year": "2022",
+      "Language": "C#",
+      "Directory": "2022"
+    },
+    {
+      "Year": "2020",
+      "Language": "Java",
+      "Directory": "2000"
+    },
+    {
+      "Year": "2020",
+      "Language": "Q#",
+      "Directory": "2000-2"
+    }
+  ]
+}

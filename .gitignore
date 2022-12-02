@@ -5,4 +5,10 @@
 
 # 2022 / C# / Rider stuff
 .idea
+2022/bin
 2022/obj
+AdventOfCode.sln.*
+
+# General files
+2000*/
+Calendar/environment.json
