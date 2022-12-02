@@ -1,6 +1,5 @@
 # Advent of Code
 
-<!-- CALENDAR-TILES -->
+This is my try in solving the [Advent of Code](https://adventofcode.com) challenges.
 
-- [Day 1](2022/01/)
-- [Day 2](2022/02/)
+<!-- CALENDAR-TILES -->
