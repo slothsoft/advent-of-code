@@ -1,14 +1,11 @@
 package d05
 
-class HydrothermalVenture {
+import kotlin.math.abs
 
-    private val size: Int
-    private val oceanFloor : Array<IntArray>
+class HydrothermalVenture(initialSize: Int) {
 
-    constructor(initialSize: Int) {
-        size = initialSize
-        oceanFloor = Array(size) { IntArray(size) }
-    }
+    private val size: Int = initialSize
+    private val oceanFloor : Array<IntArray> = Array(size) { IntArray(size) }
 
     fun applyStraightLines(lines: Array<String>) {
         for (line in lines) {
@@ -16,9 +13,9 @@ class HydrothermalVenture {
                 continue
             }
 
-            var twoPoints = line.trim().split(" -> ")
-            var point1 = twoPoints[0].split(",").map { it.toInt() }.toTypedArray()
-            var point2 = twoPoints[1].split(",").map { it.toInt() }.toTypedArray()
+            val twoPoints = line.trim().split(" -> ")
+            val point1 = twoPoints[0].split(",").map { it.toInt() }.toTypedArray()
+            val point2 = twoPoints[1].split(",").map { it.toInt() }.toTypedArray()
 
             if (point1[0] == point2[0] || point1[1] == point2[1]) {
                 applyLine(point1, point2)
@@ -29,10 +26,10 @@ class HydrothermalVenture {
     private fun applyLine(point1: Array<Int>, point2: Array<Int>) {
         if (point1[0] == point2[0] || point1[1] == point2[1]) {
             // horizontal or vertical lines
-            var rowStart = Math.min(point1[0], point2[0])
-            var rowEnd = Math.max(point1[0], point2[0]) + 1
-            var colStart = Math.min(point1[1], point2[1])
-            var colEnd = Math.max(point1[1], point2[1]) + 1
+            val rowStart = point1[0].coerceAtMost(point2[0])
+            val rowEnd = point1[0].coerceAtLeast(point2[0]) + 1
+            val colStart = point1[1].coerceAtMost(point2[1])
+            val colEnd = point1[1].coerceAtLeast(point2[1]) + 1
 
             for (row in rowStart until rowEnd) {
                 for (col in colStart until colEnd) {
@@ -42,9 +39,9 @@ class HydrothermalVenture {
             return
         }
         // diagonal lines
-        var length = Math.abs(point1[0] - point2[0])
-        var increment0 = if (point1[0] < point2[0]) 1 else -1
-        var increment1 = if (point1[1] < point2[1]) 1 else -1
+        val length = abs(point1[0] - point2[0]) + 1
+        val increment0 = if (point1[0] < point2[0]) 1 else -1
+        val increment1 = if (point1[1] < point2[1]) 1 else -1
         var value0 = point1[0]
         var value1 = point1[1]
 
@@ -61,9 +58,9 @@ class HydrothermalVenture {
                 continue
             }
 
-            var twoPoints = line.trim().split(" -> ")
-            var point1 = twoPoints[0].split(",").map { it.toInt() }.toTypedArray()
-            var point2 = twoPoints[1].split(",").map { it.toInt() }.toTypedArray()
+            val twoPoints = line.trim().split(" -> ")
+            val point1 = twoPoints[0].split(",").map { it.toInt() }.toTypedArray()
+            val point2 = twoPoints[1].split(",").map { it.toInt() }.toTypedArray()
             applyLine(point1, point2)
         }
     }
@@ -80,7 +77,7 @@ class HydrothermalVenture {
     }
 
     fun calculateHotSpots(overlap: Int): Int {
-        var result = 0;
+        var result = 0
         for (row in 0 until size) {
             for (col in 0 until size) {
                 if (oceanFloor[row][col] >= overlap) {
