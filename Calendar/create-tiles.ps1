@@ -3,6 +3,14 @@ $inputFile=$args[0]
 $outputFile=$args[1]
 
 # ----------------------------------------
+# Helper functions
+# ----------------------------------------
+
+function DoSomething($scriptBlock) {
+    return $scriptBlock.Invoke()
+}
+
+# ----------------------------------------
 # Read all necessary JSON files
 # ----------------------------------------
 
@@ -30,6 +38,7 @@ foreach ($codeSet in $calendarJson.CodeSets) {
     $directory = $codeSet.Directory
     $prefix = $codeSet.Prefix
     $showCheckboxOnly = $codeSet.ShowCheckboxOnly
+    $fixDay = $codeSet.Day
     
     $tilesForYear = "$tilesFolder\$year"
     if (!(Test-Path -Path $tilesForYear)) {
@@ -43,6 +52,9 @@ foreach ($codeSet in $calendarJson.CodeSets) {
     $color = $colorsJson.PSObject.Properties[$language].PSObject.Properties["Value"].Value.PSObject.Properties["color"].Value # ???
     if (!$color) {
         $color = "#FF0000"
+    }
+    if ($language -eq "JavaScript") {
+        $language = "JS"
     }
       
     # Read my Leaderboard
@@ -67,19 +79,35 @@ foreach ($codeSet in $calendarJson.CodeSets) {
 	
 	# Find the correct folders with source code
 	
-    $dayFolders = Get-ChildItem "$PSScriptRoot\..\$directory" -Directory -Filter "$prefix*"
+    if ($fixDay) {
+        # the folder is only one specific day
+        $dayFolders = @("$PSScriptRoot\..\$directory")
+        $dayParser = {
+            return [int] $fixDay
+        }
+    } else {
+        # the folder contains multiple days
+        $dayFolders = Get-ChildItem "$PSScriptRoot\..\$directory" -Directory -Filter "$prefix*"
+        $dayParser = {
+            $day = ""
+            if ([int]::TryParse($baseFileName, [ref]$day)) {
+                return $day
+            }
+            return 0
+        }
+    }
 	
     foreach ($file in $dayFolders) {
-        $day = ""
         $folderName = $file.Name
-        
-		if ($prefix) {
+		
+        if ($prefix) {
 			$baseFileName = $folderName -replace $prefix, ''
 		} else {
 			$baseFileName = $folderName
 		}
+        $day = DoSomething($dayParser)
 		
-        if ([int]::TryParse($baseFileName, [ref]$day))
+        if ($day)
         {
             $dayWithZero = '{0:d2}'-f $day
             if ($dailyScores.Contains($day))
