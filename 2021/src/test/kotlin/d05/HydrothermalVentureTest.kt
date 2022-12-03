@@ -32,5 +32,23 @@ class HydrothermalVentureTest {
         oceanFloor.applyStraightLines(HydrothermalVentureTest::class.java.getResource("input.txt").readText().split("\n").toTypedArray())
         var result = oceanFloor.calculateHotSpots(2)
         println("Puzzle 1: " + result)
+        Assert.assertEquals(6005, result)
+    }
+
+    @Test
+    fun testExample2() {
+        val oceanFloor = HydrothermalVenture(10)
+        oceanFloor.applyLines(INPUT)
+        println(oceanFloor)
+        Assert.assertEquals(12, oceanFloor.calculateHotSpots(2))
+    }
+
+    @Test
+    fun testPuzzle2() {
+        val oceanFloor = HydrothermalVenture(1000)
+        oceanFloor.applyLines(HydrothermalVentureTest::class.java.getResource("input.txt").readText().split("\n").toTypedArray())
+        var result = oceanFloor.calculateHotSpots(2)
+        println("Puzzle 2: " + result)
+        Assert.assertEquals(23837, result) // FIXME: this is not the correct value
     }
 }
