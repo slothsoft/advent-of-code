@@ -27,15 +27,44 @@ class HydrothermalVenture {
     }
 
     private fun applyLine(point1: Array<Int>, point2: Array<Int>) {
-        var rowStart = Math.min(point1[0], point2[0])
-        var rowEnd = Math.max(point1[0], point2[0]) + 1
-        var colStart = Math.min(point1[1], point2[1])
-        var colEnd = Math.max(point1[1], point2[1]) + 1
+        if (point1[0] == point2[0] || point1[1] == point2[1]) {
+            // horizontal or vertical lines
+            var rowStart = Math.min(point1[0], point2[0])
+            var rowEnd = Math.max(point1[0], point2[0]) + 1
+            var colStart = Math.min(point1[1], point2[1])
+            var colEnd = Math.max(point1[1], point2[1]) + 1
 
-        for (row in rowStart until rowEnd) {
-            for (col in colStart until colEnd) {
-                oceanFloor[row][col]++
+            for (row in rowStart until rowEnd) {
+                for (col in colStart until colEnd) {
+                    oceanFloor[row][col]++
+                }
             }
+            return
+        }
+        // diagonal lines
+        var length = Math.abs(point1[0] - point2[0])
+        var increment0 = if (point1[0] < point2[0]) 1 else -1
+        var increment1 = if (point1[1] < point2[1]) 1 else -1
+        var value0 = point1[0]
+        var value1 = point1[1]
+
+        for (i in 0 until length) {
+            oceanFloor[value0][value1]++
+            value0 += increment0
+            value1 += increment1
+        }
+    }
+
+    fun applyLines(lines: Array<String>) {
+        for (line in lines) {
+            if (line.trim().isEmpty()) {
+                continue
+            }
+
+            var twoPoints = line.trim().split(" -> ")
+            var point1 = twoPoints[0].split(",").map { it.toInt() }.toTypedArray()
+            var point2 = twoPoints[1].split(",").map { it.toInt() }.toTypedArray()
+            applyLine(point1, point2)
         }
     }
 
