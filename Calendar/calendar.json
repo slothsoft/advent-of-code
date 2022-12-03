@@ -9,7 +9,15 @@
       "Year": "2021",
       "Language": "Java",
       "Directory": "2021/src/test/java",
-	  "Prefix": "d"
+	  "Prefix": "d",
+      "ShowCheckboxOnly": "true"
+    },
+    {
+      "Year": "2021",
+      "Language": "Kotlin",
+      "Directory": "2021/src/test/kotlin",
+      "Prefix": "d",
+      "ShowCheckboxOnly": "true"
     }
   ]
 }

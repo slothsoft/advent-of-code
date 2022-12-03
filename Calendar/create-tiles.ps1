@@ -29,6 +29,7 @@ foreach ($codeSet in $calendarJson.CodeSets) {
     $language = $codeSet.Language
     $directory = $codeSet.Directory
     $prefix = $codeSet.Prefix
+    $showCheckboxOnly = $codeSet.ShowCheckboxOnly
     
     $tilesForYear = "$tilesFolder\$year"
     if (!(Test-Path -Path $tilesForYear)) {
@@ -49,18 +50,18 @@ foreach ($codeSet in $calendarJson.CodeSets) {
     $leaderboardContent = $webClient.DownloadString("https://adventofcode.com/$year/leaderboard/self")
     # $leaderboardContent = [string] (gc "$PSScriptRoot\Examples\leaderboard-$year.html" -encoding utf8)
     
-    $regex = '\d{1,2}\s+[^\s]+\s+\d+\s+\d+\s+[^\s]+\s+\d+\s+\d+'
+    $regex = '\d{1,2}\s+[^\s]+\s+\d+\s+\d+\s+[^\s]+\s+[\d-]+\s+[\d-]'
     $dailyScores = @{ }
     foreach ($score in ([regex]$regex).Matches($leaderboardContent)) {
         $scoreSplit = $score.Value.Trim() -split '\s+'
         
         $dailyScores[[int] $scoreSplit[0]] = @{
             Part1Time = $scoreSplit[1]
-            Part1Rank = [int] $scoreSplit[2]
-            Part1Score = [int] $scoreSplit[3]
+            Part1Rank = $scoreSplit[2]
+            Part1Score = $scoreSplit[3]
             Part2Time = $scoreSplit[4]
-            Part2Rank = [int] $scoreSplit[5]
-            Part2Score = [int] $scoreSplit[6]
+            Part2Rank = $scoreSplit[5]
+            Part2Score = $scoreSplit[6]
         }
     }
 	
@@ -69,14 +70,15 @@ foreach ($codeSet in $calendarJson.CodeSets) {
     $dayFolders = Get-ChildItem "$PSScriptRoot\..\$directory" -Directory -Filter "$prefix*"
 	
     foreach ($file in $dayFolders) {
+        $day = ""
         $folderName = $file.Name
+        
 		if ($prefix) {
 			$baseFileName = $folderName -replace $prefix, ''
 		} else {
 			$baseFileName = $folderName
 		}
 		
-        $day = ""
         if ([int]::TryParse($baseFileName, [ref]$day))
         {
             $dayWithZero = '{0:d2}'-f $day
@@ -85,12 +87,20 @@ foreach ($codeSet in $calendarJson.CodeSets) {
                 $dailyScore = $dailyScores[$day]
             } else {
                 $dailyScore = @{
-                    Part1Time = "--:--:--"
+                    Part1Time = "-"
                     Part1Rank = "-"
                     Part1Score = "-"
-                    Part2Time = "--:--:--"
+                    Part2Time = "-"
                     Part2Rank = "-"
                     Part2Score = "-"
+                }
+            }
+            if ($showCheckboxOnly) {
+                if ($dailyScore.Part1Time -ne "-") {
+                    $dailyScore.Part1Time = "&#9745;"
+                }
+                if ($dailyScore.Part2Time -ne "-") {
+                    $dailyScore.Part2Time = "&#9745;"
                 }
             }
          
