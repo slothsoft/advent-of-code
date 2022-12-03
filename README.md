@@ -18,4 +18,8 @@ This is my try in solving the [Advent of Code](https://adventofcode.com) challen
 <a href="./2021/src/test/java/d04"><img src="./Calendar/Tiles/2021/04.svg" width="150px"></a>
 <a href="./2021/src/test/kotlin/d05"><img src="./Calendar/Tiles/2021/05.svg" width="150px"></a>
 <a href="./2021-06/"><img src="./Calendar/Tiles/2021/06.svg" width="150px"></a>
+<a href="./2021/src/test/java/d07"><img src="./Calendar/Tiles/2021/07.svg" width="150px"></a>
+<a href="./2021/src/test/java/d08"><img src="./Calendar/Tiles/2021/08.svg" width="150px"></a>
+<a href="./2021/src/test/java/d09"><img src="./Calendar/Tiles/2021/09.svg" width="150px"></a>
+<a href="./2021/src/test/java/d10"><img src="./Calendar/Tiles/2021/10.svg" width="150px"></a>
 

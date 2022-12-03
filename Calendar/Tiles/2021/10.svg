@@ -11,7 +11,7 @@
      id="root"
      transform="translate(-43.788765,-16.524008)">
     <rect
-            style="opacity:1;fill:#f1e05a;fill-opacity:0.13333333;stroke:#f1e05a;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+            style="opacity:1;fill:#b07219;fill-opacity:0.13333333;stroke:#b07219;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
             id="rect4533"
             width="20.562164"
             height="11.028785"
@@ -19,7 +19,7 @@
             y="16.649008"
             ry="0.83208251" />
     <rect
-            style="opacity:1;fill:#f1e05a;fill-opacity:1;stroke:none;stroke-width:0.04105428;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+            style="opacity:1;fill:#b07219;fill-opacity:1;stroke:none;stroke-width:0.04105428;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
             id="rect4533-9"
             width="6.5388241"
             height="2.7302313"
@@ -35,7 +35,7 @@
          id="tspan4552"
          x="44.533787"
          y="19.674456"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:'Calibri Bold';stroke-width:0.26458332">Day 06</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:'Calibri Bold';stroke-width:0.26458332">Day 10</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.11666656px;line-height:1;font-family:Calibri;-inkscape-font-specification:'Calibri Bold';fill:#999999;fill-opacity:1;stroke-width:0.26458332"
@@ -61,7 +61,7 @@
          x="51.066868"
          y="26.259621"
          style="font-size:2.11666656px;"
-         id="tspan4560-0">&#9745;</tspan></text>
+         id="tspan4560-0">-</tspan></text>
     <text
        xml:space="preserve"
        x="60.742962"
@@ -71,6 +71,6 @@
          y="19.102455"
          text-anchor="middle"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.11666656px;line-height:1;font-family:Calibri;-inkscape-font-specification:'Calibri Bold';fill:#ffffff;fill-opacity:1;stroke-width:0.26458332"
-         id="tspan4560-0-5">JS</tspan></text>
+         id="tspan4560-0-5">Java</tspan></text>
   </g>
 </svg>
