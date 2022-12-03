@@ -151,13 +151,13 @@ foreach ($codeSet in $calendarJson.CodeSets) {
 # ----------------------------------------
 
 $readmeReplacement = ""
-foreach ($year in $calendarData.Keys)
+foreach ($year in $calendarData.GetEnumerator() | Sort Name -Descending)
 {
-    $readmeReplacement = $readmeReplacement + "`n`n# $year`n`n"
+    $readmeReplacement = $readmeReplacement + "`n`n# " + $year.Name + "`n`n"
 
-    foreach ($day in $calendarData[$year].Keys)
+    foreach ($day in $year.Value.GetEnumerator() | Sort Name)
     {
-        $readmeReplacement = $readmeReplacement + $calendarData[$year][$day] + "`n"
+        $readmeReplacement = $readmeReplacement + $day.Value + "`n"
     }
 }
 
