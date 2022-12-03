@@ -18,6 +18,13 @@
       "Directory": "2021/src/test/kotlin",
       "Prefix": "d",
       "ShowCheckboxOnly": "true"
+    },
+    {
+      "Year": "2021",
+      "Day": "6",
+      "Language": "JavaScript",
+      "Directory": "2021-06",
+      "ShowCheckboxOnly": "true"
     }
   ]
 }
