@@ -14,6 +14,9 @@ Rem -------------------------------------------------
 copy /y .\2021-06\index.html .\docs\2021-06.html
 copy /y .\2021-06\resources\js\* .\docs\resources\js\
 
+copy /y .\2021-11\index.html .\docs\2021-11.html
+copy /y .\2021-11\resources\js\* .\docs\resources\js\
+
 EXIT /B %ERRORLEVEL%
 
 Rem -------------------------------------------------
