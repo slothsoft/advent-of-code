@@ -5,8 +5,8 @@
 
 # 2022 / C# / Rider stuff
 .idea
-2022/bin
-2022/obj
+**/bin
+**/obj
 AdventOfCode.sln.*
 
 # General files
