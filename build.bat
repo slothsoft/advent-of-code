@@ -7,6 +7,16 @@ Rem -------------------------------------------------
 CALL :ClearFolder %cd%/Calendar/Tiles/
 powershell -ExecutionPolicy Bypass -File %cd%/Calendar/create-tiles.ps1 %cd%/README-raw.md %cd%/README.md
 
+Rem -------------------------------------------------
+Rem Copy necessary files into docs folder
+Rem -------------------------------------------------
+
+copy /y .\2021-06\index.html .\docs\2021-06.html
+copy /y .\2021-06\resources\js\* .\docs\resources\js\
+
+copy /y .\2021-11\index.html .\docs\2021-11.html
+copy /y .\2021-11\resources\js\* .\docs\resources\js\
+
 EXIT /B %ERRORLEVEL%
 
 Rem -------------------------------------------------
