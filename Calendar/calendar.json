@@ -32,6 +32,13 @@
       "Language": "JavaScript",
       "Directory": "2021-11",
       "ShowCheckboxOnly": "true"
+    },
+    {
+      "Year": "2019",
+      "Day": "20",
+      "Language": "C#",
+      "Directory": "2019-20",
+      "ShowCheckboxOnly": "true"
     }
   ]
 }
