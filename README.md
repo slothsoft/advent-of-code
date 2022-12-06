@@ -11,4 +11,5 @@ This is my try in solving the [Advent of Code](https://adventofcode.com) challen
 <a href="./2022/03"><img src="./Calendar/Tiles/2022/03.svg" width="150px"></a>
 <a href="./2022/04"><img src="./Calendar/Tiles/2022/04.svg" width="150px"></a>
 <a href="./2022/05"><img src="./Calendar/Tiles/2022/05.svg" width="150px"></a>
+<a href="./2022/06"><img src="./Calendar/Tiles/2022/06.svg" width="150px"></a>
 
