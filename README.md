@@ -2,6 +2,8 @@
 
 This is my try in solving the [Advent of Code](https://adventofcode.com) challenges.
 
+Some of the challenges where done in a [JavaScript simulation](https://slothsoft.github.io/advent-of-code/).
+
 
 
 # 2022
@@ -12,6 +14,7 @@ This is my try in solving the [Advent of Code](https://adventofcode.com) challen
 <a href="./2022/04"><img src="./Calendar/Tiles/2022/04.svg" width="150px"></a>
 <a href="./2022/05"><img src="./Calendar/Tiles/2022/05.svg" width="150px"></a>
 <a href="./2022/06"><img src="./Calendar/Tiles/2022/06.svg" width="150px"></a>
+<a href="./2022/07"><img src="./Calendar/Tiles/2022/07.svg" width="150px"></a>
 
 
 # 2021
@@ -28,9 +31,4 @@ This is my try in solving the [Advent of Code](https://adventofcode.com) challen
 <a href="./2021/src/test/java/d10"><img src="./Calendar/Tiles/2021/10.svg" width="150px"></a>
 <a href="./2021-11/"><img src="./Calendar/Tiles/2021/11.svg" width="150px"></a>
 <a href="./2021/src/test/java/d12"><img src="./Calendar/Tiles/2021/12.svg" width="150px"></a>
-
-
-# 2019
-
-<a href="./2019-20/"><img src="./Calendar/Tiles/2019/20.svg" width="150px"></a>
 
