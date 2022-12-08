@@ -17,42 +17,33 @@ namespace AoC;
 /// can instantly teleport you from one side to the other. 
 /// </summary>
 public class DonutMaze {
-    private record Point(int X, int Y);
-
-    private record PointWithLevel(Point Point, int Level);
-
-    private record Portal(string Name, Point Location, bool OuterPortal);
-
-    private const string StartPortal = "AA";
-    private const string EndPortal = "ZZ";
+    internal const string StartPortal = "AA";
+    internal const string EndPortal = "ZZ";
 
     private const char Walkable = '.';
     private const char Wall = '#';
     private const char PortalChar = 'P';
-    private const char End = 'E';
-    private const char Start = 'S';
+    internal const char End = 'E';
+    internal const char Start = 'S';
 
     private const int Border = 2;
 
-    public int MaxLevel { get; init; } = 10;
-    public int MaxStepLength { get; init; } =  int.MaxValue;
-
-    private readonly char[][] _maze;
+    internal readonly char[][] Maze;
     private readonly int _ringSize;
     private readonly int _holeSize;
-    private readonly Portal[] _portals;
-    private readonly IDictionary<Point, Point> _portalConnections;
+    internal readonly Portal[] Portals;
+    internal readonly IDictionary<Point, Point> PortalConnections;
 
     public DonutMaze(string[] donutAsStrings, int ringSize) {
         _ringSize = ringSize;
         _holeSize = donutAsStrings[donutAsStrings.Length / 2].Length - 2 * _ringSize;
 
-        _maze = ParseMaze(donutAsStrings, _ringSize);
-        _portals = ParsePortals(donutAsStrings);
-        _portalConnections = MapPortals(_portals);
+        Maze = ParseMaze(donutAsStrings);
+        Portals = ParsePortals(donutAsStrings);
+        PortalConnections = MapPortals(Portals);
     }
 
-    private static char[][] ParseMaze(string[] donutAsStrings, int ringSize) {
+    private static char[][] ParseMaze(string[] donutAsStrings) {
         var result = new char[donutAsStrings[0].Length - 2 * Border][];
         for (var i = 0; i < result.Length; i++) {
             result[i] = new char[donutAsStrings.Length - 2 * Border];
@@ -80,7 +71,7 @@ public class DonutMaze {
             .ToArray();
     }
 
-    private IEnumerable<Portal> ParseHorizontalPortals(string[] donutAsStrings, int index, int portalY, bool outerPortal) {
+    private static IEnumerable<Portal> ParseHorizontalPortals(string[] donutAsStrings, int index, int portalY, bool outerPortal) {
         for (var i = 0; i < donutAsStrings[index].Length; i++) {
             if (char.IsLetter(donutAsStrings[index][i])) {
                 if (!char.IsLetter(donutAsStrings[index + 1][i])) {
@@ -94,7 +85,7 @@ public class DonutMaze {
         }
     }
 
-    private IEnumerable<Portal> ParseVerticalPortals(string[] donutAsStrings, int index, int portalX, bool outerPortal) {
+    private static IEnumerable<Portal> ParseVerticalPortals(string[] donutAsStrings, int index, int portalX, bool outerPortal) {
         for (var i = 0; i < donutAsStrings.Length; i++) {
             if (char.IsLetter(donutAsStrings[i][index])) {
                 if (!char.IsLetter(donutAsStrings[i][index + 1])) {
@@ -114,58 +105,29 @@ public class DonutMaze {
         foreach (var portalByName in portalsByName) {
             if (portalByName.Key == StartPortal) {
                 Assert.AreEqual(1, portalByName.Value.Length, "There is only 1 start portal!");
-                _maze[portalByName.Value[0].Location.X][portalByName.Value[0].Location.Y] = Start;
+                Maze[portalByName.Value[0].Location.X][portalByName.Value[0].Location.Y] = Start;
             } else if (portalByName.Key == EndPortal) {
                 Assert.AreEqual(1, portalByName.Value.Length, "There is only 1 end portal!");
-                _maze[portalByName.Value[0].Location.X][portalByName.Value[0].Location.Y] = End;
+                Maze[portalByName.Value[0].Location.X][portalByName.Value[0].Location.Y] = End;
             } else {
                 Assert.AreEqual(2, portalByName.Value.Length, "There must be 2 of each portal! (" + portalByName.Key + ")");
-                _maze[portalByName.Value[0].Location.X][portalByName.Value[0].Location.Y] = PortalChar;
-                _maze[portalByName.Value[1].Location.X][portalByName.Value[1].Location.Y] = PortalChar;
+                Maze[portalByName.Value[0].Location.X][portalByName.Value[0].Location.Y] = PortalChar;
+                Maze[portalByName.Value[1].Location.X][portalByName.Value[1].Location.Y] = PortalChar;
                 result.Add(portalByName.Value[0].Location, portalByName.Value[1].Location);
                 result.Add(portalByName.Value[1].Location, portalByName.Value[0].Location);
             }
         }
 
         // clear the hole
-        for (var x = _ringSize; x < _maze.Length - _ringSize; x++) {
-            for (var y = _ringSize; y < _maze[x].Length - _ringSize; y++) {
-                _maze[x][y] = ' ';
+        for (var x = _ringSize; x < Maze.Length - _ringSize; x++) {
+            for (var y = _ringSize; y < Maze[x].Length - _ringSize; y++) {
+                Maze[x][y] = ' ';
             }
         }
         return result;
     }
 
-    public int SolveReturnSteps() {
-        var solutions = new List<Point[]>();
-        var currentSteps = new List<Point>();
-        currentSteps.Add(_portals.Single(p => p.Name == StartPortal).Location);
-        Solve(solutions, currentSteps);
-        return solutions.MinBy(s => s.Length)?.Length ?? -1;
-    }
-
-    private void Solve(List<Point[]> solutions, List<Point> currentSteps) {
-        var position = currentSteps[^1];
-        var possibleNextPositions = FindPossibleNextPositions(position)
-            .Where(p => !currentSteps.Contains(p)) // we will not backtrack
-            .ToArray();
-
-        if (possibleNextPositions.Length == 0) {
-            return; // there is no way to go
-        }
-
-        if (possibleNextPositions.Length == 1) {
-            // there is only one way to go, so go there
-            Step(solutions, currentSteps, possibleNextPositions[0]);
-            return;
-        }
-
-        foreach (var possibleNextPosition in possibleNextPositions) {
-            Step(solutions, new List<Point>(currentSteps), possibleNextPosition);
-        }
-    }
-
-    private IEnumerable<Point> FindPossibleNextPositions(Point position) {
+    internal IEnumerable<Point> FindPossibleNextPositions(Point position) {
         if (IsWalkable(position.X - 1, position.Y)) {
             yield return position with {X = position.X - 1};
         }
@@ -186,116 +148,21 @@ public class DonutMaze {
     private bool IsWalkable(int x, int y) {
         if (x < 0 || y < 0)
             return false;
-        if (x >= _maze.Length || y >= _maze[0].Length)
+        if (x >= Maze.Length || y >= Maze[0].Length)
             return false;
-        return _maze[x][y] == Walkable || _maze[x][y] == PortalChar || _maze[x][y] == End;
+        return Maze[x][y] == Walkable || Maze[x][y] == PortalChar || Maze[x][y] == End;
     }
 
-    private void Step(List<Point[]> solutions, List<Point> currentSteps, Point nextPosition) {
-        if (_portalConnections.ContainsKey(nextPosition)) {
-            // the next step is a portal field
-            currentSteps.Add(nextPosition);
-            currentSteps.Add(_portalConnections[nextPosition]);
-            Solve(solutions, currentSteps);
-        } else if (_maze[nextPosition.X][nextPosition.Y] == End) {
-            // the next step is THE END
-            solutions.Add(currentSteps.ToArray());
-        } else {
-            // the next step is a regular field
-            currentSteps.Add(nextPosition);
-            Solve(solutions, currentSteps);
-        }
+    public Portal FetchPortal(Point location) {
+        return Portals.Single(p => p.Location == location);
     }
-
-    public int SolveRecursiveReturnSteps() {
-        var solutions = new List<PointWithLevel[]>();
-        var currentSteps = new List<PointWithLevel>();
-        var location = _portals.Single(p => p.Name == StartPortal).Location;
-        currentSteps.Add(new PointWithLevel(location, 0));
-        SolveRecursive(solutions, currentSteps, 0);
-        return solutions.MinBy(s => s.Length)?.Length ?? -1;
-    }
-
-    private void SolveRecursive(List<PointWithLevel[]> solutions, List<PointWithLevel> currentSteps, int currentLevel) {
-        var position = currentSteps[^1];
-        var possibleNextPositions = FindPossibleNextPositions(position.Point)
-            .Where(p => currentSteps.All(s => s.Point != p || s.Level != currentLevel)) // we will not backtrack
-            .Where(p => _maze[p.X][p.Y] != PortalChar || IsValidPortal(p, currentLevel))
-            .ToArray();
-
-        if (possibleNextPositions.Length == 0) {
-            return; // there is no way to go
-        }
-
-        if (possibleNextPositions.Length == 1) {
-            // there is only one way to go, so go there
-            StepRecursive(solutions, currentSteps, possibleNextPositions[0], currentLevel);
-            return;
-        }
-
-        foreach (var possibleNextPosition in possibleNextPositions) {
-            StepRecursive(solutions, new List<PointWithLevel>(currentSteps), possibleNextPosition, currentLevel);
-        }
-    }
-
-    private bool IsValidPortal(Point location, int currentLevel) {
-        var portal = _portals.Single(p => p.Location == location);
-        return portal.OuterPortal ? currentLevel > 0 : currentLevel <= MaxLevel;
-    }
-
-    private void StepRecursive(List<PointWithLevel[]> solutions, List<PointWithLevel> currentSteps, Point nextPosition, int currentLevel) {
-        if (currentSteps.Count > MaxStepLength) {
-            // we refuse to take another step because the algorithm needs to stop somewhere
-            return;
-        }
-        if (currentSteps.Count > (solutions.MinBy(s => s.Length)?.Length ?? int.MaxValue)) {
-            // we refuse to take another step because the algorithm has already found a better solution
-            return;
-        }
-        
-        if (_portalConnections.ContainsKey(nextPosition)) {
-            // the next step is a portal field
-            var portal = _portals.Single(p => p.Location == nextPosition);
-            var nextLevel = portal.OuterPortal ? currentLevel - 1 : currentLevel + 1;
-
-            currentSteps.Add(new PointWithLevel(nextPosition, currentLevel));
-            currentSteps.Add(new PointWithLevel(_portalConnections[nextPosition], nextLevel));
-            SolveRecursive(solutions, currentSteps, nextLevel);
-        } else if (_maze[nextPosition.X][nextPosition.Y] == End) {
-            // the next step is THE END (if it's not the top level, it's a dead end)
-            if (currentLevel == 0) {
-                solutions.Add(currentSteps.ToArray());
-            }
-        } else {
-            // the next step is a regular field
-            currentSteps.Add(new PointWithLevel(nextPosition, currentLevel));
-            SolveRecursive(solutions, currentSteps, currentLevel);
-        }
-    }
-
-    // this might improve performance because there are not too much crossings
-    public void RemoveDeadEnds() {
-        bool somethingWasChanged;
-        do {
-            somethingWasChanged = false;
-            for (var x = 1; x < _maze.Length - 1; x++) {
-                for (var y = 1; y < _maze[x].Length - 1; y++) {
-                    if (_maze[x][y] == Walkable && FindPossibleNextPositions(new Point(x, y)).Count() <= 1) {
-                        // it's a dead end, so remove it from the maze
-                        _maze[x][y] = Wall;
-                        somethingWasChanged = true;
-                    }
-                }
-            }
-        } while (somethingWasChanged);
-    }
-
+    
     public override string ToString() {
         var result = $"Ring Size: {_ringSize}\n" +
                      $"Hole Size: {_holeSize}\n";
-        for (var y = 0; y < _maze[0].Length; y++) {
-            for (var x = 0; x < _maze.Length; x++) {
-                result += _maze[x][y];
+        for (var y = 0; y < Maze[0].Length; y++) {
+            for (var x = 0; x < Maze.Length; x++) {
+                result += Maze[x][y];
             }
 
             result += "\n";
@@ -305,3 +172,7 @@ public class DonutMaze {
     }
 
 }
+
+public record Point(int X, int Y);
+
+public record Portal(string Name, Point Location, bool OuterPortal);
