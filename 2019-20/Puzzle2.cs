@@ -1,15 +1,15 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace AoC;
 
+/// <summary>
+/// This is a modified Dijkstra algorithm.
+/// </summary>
 public class Puzzle2 {
-    private record Edge(string FromPortal, string ToPortal);
-
+    private record Edge(Portal FromPortal, Portal ToPortal);
     private record Distance(int Steps, int LevelDifference);
-
-    private record PortalId(string Name, int Level);
+    private record PortalWithLevel(Portal Portal, int Level);
 
     private const int MaxLevel = 20;
     private const int MaxSteps = 10_000;
@@ -28,6 +28,12 @@ public class Puzzle2 {
             CalculateDistances(result, new List<Point> {
                 portal.Location
             });
+
+            // link this portal to its partner
+            var linkedPortal = _maze.Portals.SingleOrDefault(p => p != portal && p.Name == portal.Name);
+            if (linkedPortal != null) {
+                result.Add(new Edge(portal, linkedPortal), new Distance(1, portal.OuterPortal ? -1 : +1));
+            }
         }
 
         return result;
@@ -59,15 +65,13 @@ public class Puzzle2 {
             // the next step is a portal field
             var startPortal = _maze.FetchPortal(currentSteps.First());
             var endPortal = _maze.FetchPortal(nextPosition);
-            results.Add(new Edge(startPortal.Name, endPortal.Name), new Distance(currentSteps.Count + 2, endPortal.OuterPortal ? -1 : +1));
+            results.Add(new Edge(startPortal, endPortal), new Distance(currentSteps.Count, 0));
         } else if (_maze.Maze[nextPosition.X][nextPosition.Y] == DonutMaze.End) {
             // the next step is THE end field
             var startPortal = _maze.FetchPortal(currentSteps.First());
-            results.Add(new Edge(startPortal.Name, DonutMaze.EndPortal), new Distance(currentSteps.Count, 0));
+            results.Add(new Edge(startPortal, _maze.FetchEndPortal()), new Distance(currentSteps.Count, 0));
         } else if (_maze.Maze[nextPosition.X][nextPosition.Y] == DonutMaze.Start) {
-            // the next step is THE end field
-            var startPortal = _maze.FetchPortal(currentSteps.First());
-            results.Add(new Edge(startPortal.Name, DonutMaze.StartPortal), new Distance(currentSteps.Count, 0));
+            // the next step is THE start field - we can ignore that
         } else {
             // the next step is a regular field
             currentSteps.Add(nextPosition);
@@ -76,14 +80,14 @@ public class Puzzle2 {
     }
 
     public int SolveReturnSteps() {
-        var startPortal = new PortalId(DonutMaze.StartPortal, 0);
-        var endPortal = new PortalId(DonutMaze.EndPortal, 0);
+        var startPortal = new PortalWithLevel(_maze.FetchStartPortal(), 0);
+        var endPortal = new PortalWithLevel(_maze.FetchEndPortal(), 0);
         return Dijkstra(startPortal, endPortal);
     }
 
-    private int Dijkstra(PortalId startPortal, PortalId endPortal) {
-        var solutions = new Dictionary<PortalId, int> {{startPortal, 0}};
-        var portalsToHandle = new List<PortalId> {startPortal};
+    private int Dijkstra(PortalWithLevel startPortal, PortalWithLevel endPortal) {
+        var solutions = new Dictionary<PortalWithLevel, int> {{startPortal, 0}};
+        var portalsToHandle = new List<PortalWithLevel> {startPortal};
 
         while (portalsToHandle.Count > 0) {
             var fromPortal = portalsToHandle.First();
@@ -101,18 +105,16 @@ public class Puzzle2 {
             }
 
             var toPortalAndDistance = _distances
-                // remove start portal always
-                .Where(keyValue => keyValue.Key.ToPortal != DonutMaze.StartPortal)
                 // remove end portal if not on level 0
-                .Where(keyValue => keyValue.Key.ToPortal != DonutMaze.EndPortal || fromPortal.Level == 0)
+                .Where(keyValue => keyValue.Key.ToPortal.Name != DonutMaze.EndPortal || fromPortal.Level == 0)
                 // find portals that link to fromPortal
-                .Where(keyValue => keyValue.Key.FromPortal == fromPortal.Name)
+                .Where(keyValue => keyValue.Key.FromPortal == fromPortal.Portal)
                 .ToDictionary(k => k.Key.ToPortal, v => v.Value);
 
             foreach (var portalDistance in toPortalAndDistance) {
                 var totalSteps = fromDistance + portalDistance.Value.Steps;
                 var totalLevel = fromPortal.Level + portalDistance.Value.LevelDifference;
-                var toPortal = new PortalId(portalDistance.Key, totalLevel);
+                var toPortal = new PortalWithLevel(portalDistance.Key, totalLevel);
 
                 if (totalLevel < 0) {
                     // algorithm tries to use an outer portal, which is not allowed
@@ -127,9 +129,7 @@ public class Puzzle2 {
                         // it's a new distance, so just add it
                         solutions[toPortal] = totalSteps;
                     }
-
                     portalsToHandle.Add(toPortal);
-                    Console.WriteLine("Walk from " + fromPortal.Name + " to " + toPortal.Name + " (" + totalSteps + " steps, " + totalLevel + " level)");
                 }
             }
         }
@@ -137,19 +137,19 @@ public class Puzzle2 {
         return solutions.GetValueOrDefault(endPortal, -1);
     }
 
-    private void UpdateDistancesStartingWith(Dictionary<PortalId, int> solutions, PortalId portal, int stepsToRemove) {
+    private void UpdateDistancesStartingWith(Dictionary<PortalWithLevel, int> solutions, PortalWithLevel portal, int stepsToRemove) {
         var previousSteps = solutions[portal];
         solutions[portal] -= stepsToRemove;
 
         var targetPortals = _distances
             // get the connections starting from the above portal
-            .Where(keyValue => keyValue.Key.FromPortal == portal.Name)
+            .Where(keyValue => keyValue.Key.FromPortal == portal.Portal)
             // but only the ones that go AWAY from the starting point
             .Where(keyValue => keyValue.Value.Steps > previousSteps)
             // and only the ones that were actually already calculated (else they are going to be calculated soon)
-            .Where(keyValue => solutions.Any(s => s.Key.Name == keyValue.Key.ToPortal && s.Key.Level == portal.Level + keyValue.Value.LevelDifference))
+            .Where(keyValue => solutions.Any(s => s.Key.Portal == keyValue.Key.ToPortal && s.Key.Level == portal.Level + keyValue.Value.LevelDifference))
             // make portal IDs out of them
-            .Select(keyValue => new PortalId(keyValue.Key.ToPortal, portal.Level + keyValue.Value.LevelDifference));
+            .Select(keyValue => new PortalWithLevel(keyValue.Key.ToPortal, portal.Level + keyValue.Value.LevelDifference));
         
         foreach (var targetPortal in targetPortals) {
             UpdateDistancesStartingWith(solutions, targetPortal, stepsToRemove);
