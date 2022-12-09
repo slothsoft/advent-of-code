@@ -50,7 +50,7 @@ public class TreetopTreeHouseTest {
     [Test]
     public void Puzzle2() {
         var result = TreetopTreeHouse.FindTreeHouseSpot(File.ReadAllLines(@"08\input.txt"));
-        // Assert.AreEqual("1812", result);
+        Assert.AreEqual("315495", result);
         Assert.Pass("Puzzle 2: " + result);
     }
 }
