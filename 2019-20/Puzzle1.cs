@@ -3,6 +3,9 @@ using System.Linq;
 
 namespace AoC;
 
+/// <summary>
+/// This is a modified backtrack algorithm.
+/// </summary>
 public class Puzzle1 {
 
     private readonly DonutMaze _maze;
