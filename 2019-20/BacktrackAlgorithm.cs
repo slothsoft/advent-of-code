@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,21 +10,26 @@ namespace AoC.algorithm.backtrack;
 public class BacktrackAlgorithm<TPosition> {
     
     public interface IPositionManager {
-        TPosition StartPosition { get; }
         IEnumerable<TPosition> FindPossibleNextPositions(TPosition position);
-        bool IsEndPosition(TPosition position);
     }
 
     private readonly IPositionManager _positionManager;
+    private Predicate<TPosition>? _endPositionTester;
     
     public BacktrackAlgorithm(IPositionManager positionManager) {
         _positionManager = positionManager;
     }
-    
-    public List<TPosition[]> Solve() {
+
+    public List<TPosition[]> Solve(TPosition startPosition, TPosition endPosition) {
+        return Solve(startPosition, position => position!.Equals(endPosition));
+    }
+
+    public List<TPosition[]> Solve(TPosition startPosition, Predicate<TPosition> endPositionTester) {
+        _endPositionTester = endPositionTester;
+        
         var solutions = new List<TPosition[]>();
         var currentSteps = new List<TPosition> {
-            _positionManager.StartPosition
+            startPosition
         };
         Solve(solutions, currentSteps);
         return solutions;
@@ -52,8 +58,9 @@ public class BacktrackAlgorithm<TPosition> {
     }
 
     private void Step(List<TPosition[]> solutions, List<TPosition> currentSteps, TPosition nextPosition) {
-        if (_positionManager.IsEndPosition(nextPosition)) {
+        if (_endPositionTester!.Invoke(nextPosition)) {
             // the next step is THE END
+            currentSteps.Add(nextPosition);
             solutions.Add(currentSteps.ToArray());
         } else {
             // the next step is a regular field
