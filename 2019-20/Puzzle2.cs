@@ -1,18 +1,18 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using AoC.algorithm.backtrack;
+using AoC2.algorithm.dijkstra;
 
 namespace AoC;
 
 /// <summary>
 /// This is a modified Dijkstra algorithm.
 /// </summary>
-public class Puzzle2 {
+public class Puzzle2 : BacktrackAlgorithm<Point>.IPositionManager, DijkstraAlgorithm<PortalWithLevel, Distance>.INodeManager {
     private record Edge(Portal FromPortal, Portal ToPortal);
-    private record Distance(int Steps, int LevelDifference);
-    private record PortalWithLevel(Portal Portal, int Level);
 
-    private const int MaxLevel = 20;
-    private const int MaxSteps = 10_000;
+    public int? MaxSteps { get; set; }
 
     private readonly DonutMaze _maze;
     private readonly IReadOnlyDictionary<Edge, Distance> _distances;
@@ -23,12 +23,17 @@ public class Puzzle2 {
     }
 
     private IReadOnlyDictionary<Edge, Distance> CalculateDistances() {
+        var backtrack = new BacktrackAlgorithm<Point>(this);
         var result = new Dictionary<Edge, Distance>();
+        
         foreach (var portal in _maze.Portals) {
-            CalculateDistances(result, new List<Point> {
-                portal.Location
-            });
-
+            // link this portal to all possible reachable portals
+            backtrack.Solve(portal.Location, nextPoint => _maze.Portals.Any(p => p.Location == nextPoint))
+                // map to the correct value
+                .ForEach(a =>
+                    result.Add(new Edge(portal, _maze.FetchPortal(a[^1])),
+                        new Distance(a.Length - 1, 0)));
+            
             // link this portal to its partner
             var linkedPortal = _maze.Portals.SingleOrDefault(p => p != portal && p.Name == portal.Name);
             if (linkedPortal != null) {
@@ -39,120 +44,50 @@ public class Puzzle2 {
         return result;
     }
 
-    private void CalculateDistances(Dictionary<Edge, Distance> results, List<Point> currentSteps) {
-        var position = currentSteps[^1];
-        var possibleNextPositions = _maze.FindPossibleNextPositions(position)
-            .Where(p => !currentSteps.Contains(p)) // we will not backtrack
-            .ToArray();
-
-        if (possibleNextPositions.Length == 0) {
-            return; // there is no way to go
-        }
-
-        if (possibleNextPositions.Length == 1) {
-            // there is only one way to go, so go there
-            CalculateDistances(results, currentSteps, possibleNextPositions[0]);
-            return;
-        }
-
-        foreach (var possibleNextPosition in possibleNextPositions) {
-            CalculateDistances(results, new List<Point>(currentSteps), possibleNextPosition);
-        }
-    }
-
-    private void CalculateDistances(Dictionary<Edge, Distance> results, List<Point> currentSteps, Point nextPosition) {
-        if (_maze.PortalConnections.ContainsKey(nextPosition)) {
-            // the next step is a portal field
-            var startPortal = _maze.FetchPortal(currentSteps.First());
-            var endPortal = _maze.FetchPortal(nextPosition);
-            results.Add(new Edge(startPortal, endPortal), new Distance(currentSteps.Count, 0));
-        } else if (_maze.Maze[nextPosition.X][nextPosition.Y] == DonutMaze.End) {
-            // the next step is THE end field
-            var startPortal = _maze.FetchPortal(currentSteps.First());
-            results.Add(new Edge(startPortal, _maze.FetchEndPortal()), new Distance(currentSteps.Count, 0));
-        } else if (_maze.Maze[nextPosition.X][nextPosition.Y] == DonutMaze.Start) {
-            // the next step is THE start field - we can ignore that
-        } else {
-            // the next step is a regular field
-            currentSteps.Add(nextPosition);
-            CalculateDistances(results, currentSteps);
-        }
+    public IEnumerable<Point> FindPossibleNextPositions(Point position) {
+        return _maze.FindPossibleNextPositions(position).ToList();
     }
 
     public int SolveReturnSteps() {
         var startPortal = new PortalWithLevel(_maze.FetchStartPortal(), 0);
         var endPortal = new PortalWithLevel(_maze.FetchEndPortal(), 0);
-        return Dijkstra(startPortal, endPortal);
+
+        var dijkstra = new DijkstraAlgorithm<PortalWithLevel, Distance>(this) {
+            MaxDistance = MaxSteps == null ? null : new Distance(MaxSteps.Value, 0)
+        };
+        return dijkstra.Solve(startPortal, endPortal)?.Steps ?? -1;
     }
 
-    private int Dijkstra(PortalWithLevel startPortal, PortalWithLevel endPortal) {
-        var solutions = new Dictionary<PortalWithLevel, int> {{startPortal, 0}};
-        var portalsToHandle = new List<PortalWithLevel> {startPortal};
+    public Distance EmptyDistance => new(0, 0);
 
-        while (portalsToHandle.Count > 0) {
-            var fromPortal = portalsToHandle.First();
-            portalsToHandle.Remove(fromPortal);
-            var fromDistance = solutions[fromPortal];
-
-            if (solutions.ContainsKey(endPortal) && solutions[endPortal] < fromDistance) {
-                // we already found one solution, and it's smaller than the current one, sooo...
-                continue;
-            }
-
-            if (fromDistance > MaxSteps) {
-                // manual limits to return algorithm if no way could be found (or bugs happen)
-                continue;
-            }
-
-            var toPortalAndDistance = _distances
-                // remove end portal if not on level 0
-                .Where(keyValue => keyValue.Key.ToPortal.Name != DonutMaze.EndPortal || fromPortal.Level == 0)
-                // find portals that link to fromPortal
-                .Where(keyValue => keyValue.Key.FromPortal == fromPortal.Portal)
-                .ToDictionary(k => k.Key.ToPortal, v => v.Value);
-
-            foreach (var portalDistance in toPortalAndDistance) {
-                var totalSteps = fromDistance + portalDistance.Value.Steps;
-                var totalLevel = fromPortal.Level + portalDistance.Value.LevelDifference;
-                var toPortal = new PortalWithLevel(portalDistance.Key, totalLevel);
-
-                if (totalLevel < 0) {
-                    // algorithm tries to use an outer portal, which is not allowed
-                    continue;
-                }
-
-                if (!solutions.ContainsKey(toPortal) || totalSteps < solutions[toPortal]) {
-                    if (solutions.ContainsKey(toPortal)) {
-                        // update the toPortal and all it points too
-                        UpdateDistancesStartingWith(solutions, toPortal, solutions[toPortal] - totalSteps);
-                    } else {
-                        // it's a new distance, so just add it
-                        solutions[toPortal] = totalSteps;
-                    }
-                    portalsToHandle.Add(toPortal);
-                }
-            }
-        }
-
-        return solutions.GetValueOrDefault(endPortal, -1);
+    public IEnumerable<KeyValuePair<PortalWithLevel, Distance>> FindAccessibleNodes(PortalWithLevel fromPortal) {
+        return _distances
+            // remove outer portals if on level 0
+            .Where(keyValue => fromPortal.Level + keyValue.Value.LevelDifference >= 0)
+            // remove end portal if not on level 0
+            .Where(keyValue => keyValue.Key.ToPortal.Name != DonutMaze.EndPortal || fromPortal.Level == 0)
+            // find portals that link to fromPortal
+            .Where(keyValue => keyValue.Key.FromPortal == fromPortal.Portal)
+            // now map to the correct type
+            .ToDictionary(k => new PortalWithLevel(k.Key.ToPortal, fromPortal.Level + k.Value.LevelDifference), k => k.Value);
     }
 
-    private void UpdateDistancesStartingWith(Dictionary<PortalWithLevel, int> solutions, PortalWithLevel portal, int stepsToRemove) {
-        var previousSteps = solutions[portal];
-        solutions[portal] -= stepsToRemove;
-
-        var targetPortals = _distances
-            // get the connections starting from the above portal
-            .Where(keyValue => keyValue.Key.FromPortal == portal.Portal)
-            // but only the ones that go AWAY from the starting point
-            .Where(keyValue => keyValue.Value.Steps > previousSteps)
-            // and only the ones that were actually already calculated (else they are going to be calculated soon)
-            .Where(keyValue => solutions.Any(s => s.Key.Portal == keyValue.Key.ToPortal && s.Key.Level == portal.Level + keyValue.Value.LevelDifference))
-            // make portal IDs out of them
-            .Select(keyValue => new PortalWithLevel(keyValue.Key.ToPortal, portal.Level + keyValue.Value.LevelDifference));
-        
-        foreach (var targetPortal in targetPortals) {
-            UpdateDistancesStartingWith(solutions, targetPortal, stepsToRemove);
-        }
+    public Distance AddDistances(Distance first, Distance second) {
+        return new Distance(first.Steps + second.Steps, first.LevelDifference + second.LevelDifference);
     }
+
+    public Distance Difference(Distance first, Distance second) {
+        return new Distance(first.Steps - second.Steps, first.LevelDifference - second.LevelDifference);
+    }
+}
+
+public record Distance(int Steps, int LevelDifference) : IComparable<Distance> {
+    public int CompareTo(Distance? other) {
+        if (ReferenceEquals(this, other)) return 0;
+        if (ReferenceEquals(null, other)) return 1;
+        return Steps.CompareTo(other.Steps);
+    }
+}
+
+public record PortalWithLevel(Portal Portal, int Level) {
 }
