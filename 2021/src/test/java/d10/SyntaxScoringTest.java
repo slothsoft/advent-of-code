@@ -37,7 +37,7 @@ public class SyntaxScoringTest {
 
     private String[] readInput(String fileName) throws IOException {
         try (InputStream input = getClass().getResourceAsStream(fileName);
-             Scanner scanner = new Scanner(input, StandardCharsets.UTF_8.name())) {
+             Scanner scanner = new Scanner(input, StandardCharsets.UTF_8)) {
             return scanner.useDelimiter("\\A").next().split("\\R");
         }
     }

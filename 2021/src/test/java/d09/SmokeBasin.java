@@ -1,13 +1,9 @@
 package d09;
 
-import org.junit.Assert;
-
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 /**
  * <a href="https://adventofcode.com/2021/day/9">Day 9: Smoke Basin</a>: These caves seem to be lava tubes. Parts are
@@ -18,7 +14,7 @@ import java.util.stream.Stream;
  */
 public final class SmokeBasin {
 
-    private int[][] map;
+    private final int[][] map;
 
     public SmokeBasin(String[] lines) {
         map = new int[lines.length][lines[0].length()];

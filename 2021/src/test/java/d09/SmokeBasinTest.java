@@ -7,9 +7,6 @@ import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Scanner;
 
 public class SmokeBasinTest {
@@ -37,7 +34,7 @@ public class SmokeBasinTest {
 
     private String[] readInput(String fileName) throws IOException {
         try (InputStream input = getClass().getResourceAsStream(fileName);
-             Scanner scanner = new Scanner(input, StandardCharsets.UTF_8.name())) {
+             Scanner scanner = new Scanner(input, StandardCharsets.UTF_8)) {
             return scanner.useDelimiter("\\A").next().split("\\R");
         }
     }
