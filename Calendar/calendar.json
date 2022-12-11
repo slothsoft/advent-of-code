@@ -27,6 +27,12 @@
       "ShowCheckboxOnly": "true"
     },
     {
+      "Year": "2021",
+      "Language": "C#",
+      "Directory": "2021/src/test/csharp",
+      "ShowCheckboxOnly": "true"
+    },
+    {
       "Year": "2019",
       "Day": "20",
       "Language": "C#",
