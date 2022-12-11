@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<svg
+   xmlns="http://www.w3.org/2000/svg"
+   width="20.812164mm"
+   height="11.278785mm"
+   viewBox="0 0 20.812164 11.278785"
+   version="1.1"
+   id="calendar-tile">
+  <g
+     id="root"
+     transform="translate(-43.788765,-16.524008)">
+    <rect
+            style="opacity:1;fill:#b07219;fill-opacity:0.13333333;stroke:#b07219;stroke-width:0.25;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+            id="rect4533"
+            width="20.562164"
+            height="11.028785"
+            x="43.913765"
+            y="16.649008"
+            ry="0.83208251" />
+    <rect
+            style="opacity:1;fill:#b07219;fill-opacity:1;stroke:none;stroke-width:0.04105428;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+            id="rect4533-9"
+            width="6.5388241"
+            height="2.7302313"
+            x="57.586658"
+            y="17.068647"
+            ry="1.3651156" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;line-height:1.25;font-family:Calibri;-inkscape-font-specification:Calibri;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="44.533787"
+       y="19.674456"
+       id="text4554"><tspan
+         id="tspan4552"
+         x="44.533787"
+         y="19.674456"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:'Calibri Bold';stroke-width:0.26458332">Day 16</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.11666656px;line-height:1;font-family:Calibri;-inkscape-font-specification:'Calibri Bold';fill:#999999;fill-opacity:1;stroke-width:0.26458332"
+       x="44.722775"
+       y="22.779089"
+       id="text4558"><tspan
+         id="tspan4556"
+         x="44.722775"
+         y="22.779089">Part 1:</tspan><tspan
+         x="44.722775"
+         y="26.306866"
+         id="tspan4560">Part 2:</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;line-height:1;font-family:Calibri;-inkscape-font-specification:Calibri;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="51.066868"
+       y="22.731842"
+       id="text4558-1"><tspan
+         id="tspan4556-3"
+         x="51.066868"
+         y="22.731842"
+         style="font-size:2.11666656px">&#9745;</tspan><tspan
+         x="51.066868"
+         y="26.259621"
+         style="font-size:2.11666656px;"
+         id="tspan4560-0">&#9745;</tspan></text>
+    <text
+       xml:space="preserve"
+       x="60.742962"
+       y="19.102455"
+       id="text4558-1-2"><tspan
+         x="60.742962"
+         y="19.102455"
+         text-anchor="middle"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.11666656px;line-height:1;font-family:Calibri;-inkscape-font-specification:'Calibri Bold';fill:#ffffff;fill-opacity:1;stroke-width:0.26458332"
+         id="tspan4560-0-5">Java</tspan></text>
+  </g>
+</svg>
