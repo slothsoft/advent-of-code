@@ -23,7 +23,7 @@ class TransparentOrigami {
         }
     }
 
-    fun addPoint(xAndY: String) { // 9,10
+    private fun addPoint(xAndY: String) { // 9,10
         val xAndYSplit = xAndY.split(",")
         addPoint(xAndYSplit[0].toInt(), xAndYSplit[1].toInt())
     }
@@ -32,9 +32,9 @@ class TransparentOrigami {
         points.add(Point(x, y))
     }
 
-    fun foldAlong(command: String) { // fold along y=7
+    private fun foldAlong(command: String) { // fold along y=7
         val coordAndValue = command.split(" ")[2].split("=")
-        if (coordAndValue[0].equals("y")) {
+        if (coordAndValue[0] == "y") {
             foldAlongY(coordAndValue[1].toInt())
         } else {
             foldAlongX(coordAndValue[1].toInt())
@@ -43,14 +43,14 @@ class TransparentOrigami {
 
     fun foldAlongX(x: Int) {
         val foldedPoints = points.filter { it.x > x }.toList()
-        points.removeAll(foldedPoints)
+        points.removeAll(foldedPoints.toSet())
         foldedPoints.forEach{ it.x = 2 * x - it.x}
         points.addAll(foldedPoints)
     }
 
     fun foldAlongY(y: Int) {
         val foldedPoints = points.filter { it.y > y }.toList()
-        points.removeAll(foldedPoints)
+        points.removeAll(foldedPoints.toSet())
         foldedPoints.forEach{ it.y = (y - (it.y - y))}
         points.addAll(foldedPoints)
     }
@@ -60,8 +60,8 @@ class TransparentOrigami {
     }
 
     override fun toString(): String {
-        val xMax: Int = points.map { it.x }.max()
-        val yMax: Int = points.map { it.y }.max()
+        val xMax: Int = points.maxOf { it.x }
+        val yMax: Int = points.maxOf { it.y }
         val point = Point()
 
         val result: StringBuilder = StringBuilder()

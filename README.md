@@ -26,14 +26,15 @@ Some of the challenges where done in a [JavaScript simulation](https://slothsoft
 <a href="./2021/src/test/java/d03"><img src="./Calendar/Tiles/2021/03.svg" width="150px"></a>
 <a href="./2021/src/test/java/d04"><img src="./Calendar/Tiles/2021/04.svg" width="150px"></a>
 <a href="./2021/src/test/kotlin/d05"><img src="./Calendar/Tiles/2021/05.svg" width="150px"></a>
-<a href="./2021-06/"><img src="./Calendar/Tiles/2021/06.svg" width="150px"></a>
+<a href="./2021/src/test/javascript/06"><img src="./Calendar/Tiles/2021/06.svg" width="150px"></a>
 <a href="./2021/src/test/java/d07"><img src="./Calendar/Tiles/2021/07.svg" width="150px"></a>
 <a href="./2021/src/test/java/d08"><img src="./Calendar/Tiles/2021/08.svg" width="150px"></a>
 <a href="./2021/src/test/java/d09"><img src="./Calendar/Tiles/2021/09.svg" width="150px"></a>
 <a href="./2021/src/test/java/d10"><img src="./Calendar/Tiles/2021/10.svg" width="150px"></a>
-<a href="./2021-11/"><img src="./Calendar/Tiles/2021/11.svg" width="150px"></a>
+<a href="./2021/src/test/javascript/11"><img src="./Calendar/Tiles/2021/11.svg" width="150px"></a>
 <a href="./2021/src/test/java/d12"><img src="./Calendar/Tiles/2021/12.svg" width="150px"></a>
 <a href="./2021/src/test/kotlin/d13"><img src="./Calendar/Tiles/2021/13.svg" width="150px"></a>
+<a href="./2021/src/test/kotlin/d14"><img src="./Calendar/Tiles/2021/14.svg" width="150px"></a>
 
 
 # 2019

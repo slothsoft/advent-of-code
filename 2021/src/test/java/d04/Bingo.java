@@ -19,8 +19,8 @@ public class Bingo {
 
 		private static final int SIZE = 5;
 
-		private int[][] numbers = new int[SIZE][SIZE];
-		private boolean[][] called = new boolean[SIZE][SIZE];
+		private final int[][] numbers = new int[SIZE][SIZE];
+		private final boolean[][] called = new boolean[SIZE][SIZE];
 
 		public Board(String[] lines, int startingIndex) {
 			for (int row = 0; row < SIZE; row++) {
@@ -125,7 +125,7 @@ public class Bingo {
 	}
 
 	private static String[] ReadInput(InputStream input) {
-		try (Scanner scanner = new Scanner(input, StandardCharsets.UTF_8.name())) {
+		try (Scanner scanner = new Scanner(input, StandardCharsets.UTF_8)) {
 			return scanner.useDelimiter("\\A").next().split("\n");
 		}
 	}

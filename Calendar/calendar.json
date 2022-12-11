@@ -22,16 +22,8 @@
     },
     {
       "Year": "2021",
-      "Day": "6",
       "Language": "JavaScript",
-      "Directory": "2021-06",
-      "ShowCheckboxOnly": "true"
-    },
-    {
-      "Year": "2021",
-      "Day": "11",
-      "Language": "JavaScript",
-      "Directory": "2021-11",
+      "Directory": "2021/src/test/javascript",
       "ShowCheckboxOnly": "true"
     },
     {

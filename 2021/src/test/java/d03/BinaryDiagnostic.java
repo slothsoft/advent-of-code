@@ -24,7 +24,7 @@ public final class BinaryDiagnostic {
 	}
 
 	public static String[] ReadInput(InputStream input) {
-		try (Scanner scanner = new Scanner(input, StandardCharsets.UTF_8.name())) {
+		try (Scanner scanner = new Scanner(input, StandardCharsets.UTF_8)) {
 			return scanner.useDelimiter("\\A").next().split("\n");
 		}
 	}
