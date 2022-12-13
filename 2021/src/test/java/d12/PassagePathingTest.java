@@ -18,7 +18,6 @@ public class PassagePathingTest {
         Assert.assertArrayEquals(expectedPaths, stringify(passagePathing.createAllPaths()));
     }
 
-
     private String[] readInput(String fileName) throws IOException {
         try (InputStream input = getClass().getResourceAsStream(fileName);
              Scanner scanner = new Scanner(input, StandardCharsets.UTF_8)) {
