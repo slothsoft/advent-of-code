@@ -10,7 +10,7 @@ namespace AoC._12;
 /// contacting the Elves using your handheld device, but the river you're following must be
 /// too low to get a decent signal.
 /// </summary>
-public class HillClimbingAlgorithm : DijkstraForIntAlgorithm<Point>.IIntNodeManager {
+public class HillClimbingAlgorithm {
     private readonly char[][] _map;
 
     public HillClimbingAlgorithm(string[] lines) {
@@ -56,7 +56,7 @@ public class HillClimbingAlgorithm : DijkstraForIntAlgorithm<Point>.IIntNodeMana
         var startPoint = FindPoint('S');
         var endPoint = FindPoint('E');
 
-        var dijkstra = new DijkstraForIntAlgorithm<Point>(this);
+        var dijkstra = new DijkstraForIntAlgorithm<Point>(FindAccessibleNodes);
         return dijkstra.Solve(startPoint, endPoint);
     }
 
@@ -98,7 +98,7 @@ public class HillClimbingAlgorithm : DijkstraForIntAlgorithm<Point>.IIntNodeMana
 
     public int SolveForHikingTrail() {
         var result = int.MaxValue;
-        var dijkstra = new DijkstraForIntAlgorithm<Point>(this);
+        var dijkstra = new DijkstraForIntAlgorithm<Point>(FindAccessibleNodes);
         var endPoint = FindPoint('E');
 
         for (var x = 0; x < _map.Length; x++) {

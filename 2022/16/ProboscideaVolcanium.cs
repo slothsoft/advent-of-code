@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using AoC._15;
 
 namespace AoC._16;
 
@@ -19,6 +20,7 @@ public class ProboscideaVolcanium {
         }
 
         _valves.Normalize();
+        _valves.CalculateAllCombinations();
     }
 
     private static Valve CreateValve(string line) {
@@ -28,106 +30,64 @@ public class ProboscideaVolcanium {
         return new Valve(lineSplit[2], int.Parse(lineSplit[4]), lineSplit[6].Split(", ").ToDictionary(s => s, s => 1));
     }
 
+
     public int CalculateMaxPressure(int minutes) {
-        return Solve(StartValve, new VolcanoState(minutes, _valves)).Select(s => s.PressureReleased).Max();
+        return CalculateMaxPressure(_valves, minutes, _valves.Single(v => v.Name == StartValve));
     }
 
-    private static IEnumerable<VolcanoState> Solve(string valveName, VolcanoState state) {
-        var startValve = state.Valves.Single(v => v.Name == valveName);
-
-        if (state.OpenValves.Count == state.Valves.Count) {
-            // all valves where opened, so wait the time out
-            state.PassMinutes(state.MinutesLeft);
-            return new[] {state};
-        }
-
-        if (!state.OpenValves.ContainsKey(valveName) && startValve.FlowRate > 0) {
-            // there is a valve here that is not open - open it
-            state.OpenValve(valveName);
-
-            if (state.MinutesLeft < 0) {
-                return new[] {state};
+    private static int CalculateMaxPressure(IList<Valve> stillOpenValves, int minutesLeft, Valve currentValve) {
+        // This is a modified depth first search https://en.wikipedia.org/wiki/Depth-first_search
+        var result = 0;
+        foreach (var openValve in stillOpenValves) {
+            var newMinutesLeft = minutesLeft - currentValve.AllShortestPaths[openValve.Name] - 1;
+            if (newMinutesLeft > 0) {
+                var entireFlowRate = newMinutesLeft * openValve.FlowRate + CalculateMaxPressure(stillOpenValves.Where(v => v != openValve).ToArray(), newMinutesLeft, openValve);
+                if (result < entireFlowRate) {
+                    result = entireFlowRate;
+                }
             }
         }
 
-        var possibleNextValves = startValve.LeadsToWithDistance.Where(l => state.MinutesLeft - l.Value > 0).ToArray();
-
-        if (possibleNextValves.Length == 0) {
-            // there is no way to go
-            state.PassMinutes(state.MinutesLeft);
-            return new[] {state};
-        }
-
-        if (possibleNextValves.Length == 1) {
-            // there is only one way to go, so go there
-            state.PassMinutes(possibleNextValves[0].Value);
-            return Solve(possibleNextValves[0].Key, state);
-        }
-
-        // there are many ways to go, so split up
-        return possibleNextValves.SelectMany(possibleNextValve => {
-            var copyOfState = state.Copy();
-            copyOfState.PassMinutes(possibleNextValve.Value);
-            return Solve(possibleNextValve.Key, copyOfState);
-        });
+        return result;
     }
 
-    private record VolcanoState(IDictionary<string, int> OpenValves, int MinutesLeft, int PressureReleased, IList<Valve> Valves) {
-        internal int MinutesLeft { get; private set; } = MinutesLeft;
-        internal int PressureReleased { get; private set; } = PressureReleased;
+    public double CalculateMaxPressureWithElephant(int minutes) {
+        var startValve = _valves.Single(v => v.Name == StartValve);
+        return CalculateMaxPressureWithElephant(_valves, new[] {minutes, minutes}, new[] {startValve, startValve});
+    }
 
-        internal VolcanoState(int minutesLeft, IList<Valve> valves) : this(new Dictionary<string, int>(), minutesLeft, 0, valves) {
-        }
+    static int CalculateMaxPressureWithElephant(IList<Valve> stillOpenValves, int[] minutesLeft, Valve[] currentValves) {
+        var result = 0;
+        var elephantOrI = minutesLeft[0] > minutesLeft[1] ? 0 : 1;
 
-        internal void OpenValve(string valveName) {
-            PassMinute();
-
-            var valve = Valves.Single(v => v.Name == valveName);
-            OpenValves[valveName] = valve.FlowRate;
-            Valves.RedirectValve(valve);
-            Valves.Remove(valve);
-        }
-
-        internal void PassMinutes(int minutes) {
-            for (var i = 0; i < minutes; i++) {
-                PassMinute();
+        var currentValve = currentValves[elephantOrI];
+        foreach (var openValve in stillOpenValves) {
+            var newMinuteLeft = minutesLeft[elephantOrI] - currentValve.AllShortestPaths[openValve.Name] - 1;
+            if (newMinuteLeft > 0) {
+                var newMinutesLeft = new[] {newMinuteLeft, minutesLeft[1 - elephantOrI]};
+                var newCurrentValves = new[] {openValve, currentValves[1 - elephantOrI]};
+                var entireFlowRate = newMinuteLeft * openValve.FlowRate + CalculateMaxPressureWithElephant(stillOpenValves.Where(v => v != openValve).ToArray(), newMinutesLeft, newCurrentValves);
+                if (result < entireFlowRate) {
+                    result = entireFlowRate;
+                }
             }
         }
 
-        internal void PassMinute() {
-            MinutesLeft--;
-            foreach (var openValve in OpenValves) {
-                PressureReleased += openValve.Value;
-            }
-        }
-
-        public VolcanoState Copy() {
-            return this with {
-                OpenValves = new Dictionary<string, int>(OpenValves),
-                Valves = Valves.Copy(),
-            };
-        }
+        return result;
     }
 }
 
 internal record Valve(string Name, int FlowRate, IDictionary<string, int> LeadsToWithDistance) {
-    internal Valve Copy() {
-        return this with {
-            LeadsToWithDistance = new Dictionary<string, int>(LeadsToWithDistance)
-        };
-    }
+    public IDictionary<string, int> AllShortestPaths { get; set; } = new Dictionary<string, int>();
 }
 
 internal static class ProboscideaVolcaniumExtensions {
-    internal static IList<Valve> Copy(this IEnumerable<Valve> valves) {
-        return valves.Select(v => v.Copy()).ToList();
-    }
-
     internal static void Normalize(this ICollection<Valve> valves) {
         var uselessValves = valves.Where(v => v.FlowRate == 0 && v.Name != ProboscideaVolcanium.StartValve).ToArray();
         foreach (var uselessValve in uselessValves) {
             valves.RedirectValve(uselessValve);
         }
+
         // now remove the useless valves
         foreach (var uselessValve in uselessValves) {
             valves.Remove(uselessValve);
@@ -147,6 +107,13 @@ internal static class ProboscideaVolcaniumExtensions {
                     leadsToValve.LeadsToWithDistance[otherLeadsTo.Key] = newDistance;
                 }
             }
+        }
+    }
+
+    internal static void CalculateAllCombinations(this IList<Valve> valves) {
+        foreach (var valve in valves) {
+            var dijkstra = new DijkstraForIntAlgorithm<string>(name => valves.Single(v => v.Name == name).LeadsToWithDistance);
+            valve.AllShortestPaths = dijkstra.SolveForAll(valve.Name, "ZZ");
         }
     }
 }
