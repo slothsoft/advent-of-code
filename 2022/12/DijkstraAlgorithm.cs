@@ -26,7 +26,7 @@ public class DijkstraAlgorithm<TNode, TDistance>
 
     public TDistance? MaxDistance { get; set; }
     
-    public TDistance? Solve(TNode startNode, TNode endNode) {
+    public IDictionary<TNode, TDistance> SolveForAll(TNode startNode, TNode endNode) {
         var solutions = new Dictionary<TNode, TDistance> {{startNode, _nodeManager.EmptyDistance}};
         var nodesToHandle = new List<TNode> {startNode};
 
@@ -62,7 +62,12 @@ public class DijkstraAlgorithm<TNode, TDistance>
             }
         }
 
-        return solutions.GetValueOrDefault(endNode);
+        return solutions;
+    }
+
+    public TDistance? Solve(TNode startNode, TNode endNode) {
+        var solutions = SolveForAll(startNode, endNode);
+        return solutions.ContainsKey(endNode) ? solutions[endNode] : default;
     }
 
     private void UpdateDistancesStartingWith(IDictionary<TNode, TDistance> solutions, TNode node, TDistance distanceToRemove) {
