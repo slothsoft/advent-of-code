@@ -31,6 +31,8 @@ Some of the challenges where done in a [JavaScript simulation](https://slothsoft
 <a href="./2022/14"><img src="./Calendar/Tiles/2022/14.svg" width="150px"></a>
 <a href="./2022/15"><img src="./Calendar/Tiles/2022/15.svg" width="150px"></a>
 <a href="./2022/16"><img src="./Calendar/Tiles/2022/16.svg" width="150px"></a>
+<a href="./2022/17"><img src="./Calendar/Tiles/2022/17.svg" width="150px"></a>
+<a href="./2022/18"><img src="./Calendar/Tiles/2022/18.svg" width="150px"></a>
 
 
 # 2021
