@@ -20,7 +20,7 @@ public class NotEnoughMinerals {
 
     public int MaxMinute { get; init; } = 24;
     public int[]? AllowedBlueprints { get; init; } = null;
-    
+
     private static Blueprint ParseBlueprint(string line) {
         // Blueprint 1: Each ore robot costs 4 ore.
         //     Each clay robot costs 2 ore.
@@ -53,10 +53,10 @@ public class NotEnoughMinerals {
         return SimulateMaxGeodeCount().Sum(e => e.Key * e.Value);
     }
 
-    public int CalculateMaxGeodeCount() {
-        return SimulateMaxGeodeCount().Sum(e => e.Value);
+    public int CalculateProductOfGeodeCount() {
+        return SimulateMaxGeodeCount().Values.Aggregate((a, b) => a * b);
     }
-    
+
     private IDictionary<int, int> SimulateMaxGeodeCount() {
         var result = new Dictionary<int, int>();
         foreach (var blueprint in _blueprints) {
@@ -137,15 +137,30 @@ public record Blueprint {
     public int Id { get; init; }
     public IDictionary<Resource, int>[] RobotCosts { get; init; } = Array.Empty<IDictionary<Resource, int>>();
 
+    private int[]? _maxResourceCount;
+
     public IDictionary<Resource, int> GetRobotCost(Resource resource) {
         return RobotCosts[(int) resource];
+    }
+
+    public int GetMaxResourceCount(Resource resource) {
+        if (_maxResourceCount == null) {
+            _maxResourceCount = new int[RobotCosts.Length];
+            foreach (var r in Simulation.Resources) {
+                _maxResourceCount[(int) r] = RobotCosts.Where(c => c.ContainsKey(r)).Select(c => c[r]).DefaultIfEmpty().Max();
+            }
+        }
+
+        return _maxResourceCount[(int) resource];
     }
 }
 
 public class Simulation {
-    private static readonly Resource[] Resources = {Resource.Ore, Resource.Clay, Resource.Obsidian, Resource.Geode};
+    internal static readonly Resource[] Resources = {Resource.Ore, Resource.Clay, Resource.Obsidian, Resource.Geode};
 
-    private record Result(int Geodes, IList<Robot> Robots);
+    private record Result {
+        public int Geodes { get; set; }
+    }
 
     private readonly Blueprint _blueprint;
     private readonly int _maxMinute;
@@ -161,37 +176,36 @@ public class Simulation {
             var robots = new List<Robot> {
                 new(Resource.Ore),
             };
-            var result = WorkOnAllResources(1, inventory, robots)
-                .OrderByDescending(result => result.Geodes)
-                .DefaultIfEmpty()
-                .First();
-            if (result == null) {
+            var result = new Result();
+            WorkOnAllResources(result, 1, inventory, robots);
+
+            if (result.Geodes == 0) {
                 Console.WriteLine($"Blueprint {_blueprint.Id} did not return any result");
             }
-
-            return result?.Geodes ?? 0;
+            return result.Geodes;
         } catch (Exception) {
             Console.WriteLine($"Blueprint {_blueprint} was broken somehow");
             throw;
         }
     }
 
-    private IEnumerable<Result> WorkOnAllResources(int currentMinute, Inventory inventory, IList<Robot> robots) {
-        var possibleResources = Resources
-            .Where(resource => AreRobotsCollectingForRobot(currentMinute, inventory, robots, resource))
-            // do not build robots after the maximum for their resource is reached
-            .Where(resource => resource == Resource.Geode || robots.Count(r => r.Collecting == resource) <
-                               _blueprint.RobotCosts.Where(c => c.ContainsKey(resource)).Select(c => c[resource]).Max())
-            .ToList();
+    private void WorkOnAllResources(Result result, int currentMinute, Inventory inventory, IList<Robot> robots) {
+        var maximumCurrentGeodes = (_maxMinute - currentMinute + 1) * robots.Count(r => r.Collecting == Resource.Geode);
+        
+        foreach (var resource in Resources) {
+            // if the existing robots will not reach this robot's cost in the runtime of the simulation
+            if (!AreRobotsCollectingForRobot(currentMinute, inventory, robots, resource)) continue;
 
-        return possibleResources.Count switch {
-            // do nothing and be happy this reduction was done
-            0 => ArraySegment<Result>.Empty,
-            // we do not need to create copies
-            1 => Work(currentMinute, inventory, robots, possibleResources[0]),
+            // do not build robots after the maximum for their resource is reached
+            if (resource != Resource.Geode && robots.Count(r => r.Collecting == resource) >= _blueprint.GetMaxResourceCount(resource)) continue;
+
+            // There already is a solution - and we can't reach it
+            var maximumFutureGeodes = (_maxMinute - currentMinute) * (_maxMinute - currentMinute) / 2;
+            if (inventory.Get(Resource.Geode) + maximumCurrentGeodes + maximumFutureGeodes < result.Geodes) continue;
+
             // copy everything and split into new work threads
-            _ => possibleResources.SelectMany(resource => Work(currentMinute, inventory.Copy(), new List<Robot>(robots), resource))
-        };
+            Work(result, currentMinute, inventory.Copy(), new List<Robot>(robots), resource);
+        }
     }
 
     private bool AreRobotsCollectingForRobot(int currentMinute, Inventory inventory, IList<Robot> robots, Resource robotToBuild) {
@@ -206,7 +220,7 @@ public class Simulation {
         return true;
     }
 
-    private IEnumerable<Result> Work(int currentMinute, Inventory inventory, IList<Robot> robots, Resource nextRobotType) {
+    private void Work(Result result, int currentMinute, Inventory inventory, IList<Robot> robots, Resource nextRobotType) {
         // check if we can build the next robot type
         Robot? nextRobot = null;
         var nextRobotCost = _blueprint.GetRobotCost(nextRobotType);
@@ -223,7 +237,11 @@ public class Simulation {
         // stop the recursiveness
         if (currentMinute >= _maxMinute) {
             // but we do not count this as a result if there are no geodes
-            return inventory.Has(Resource.Geode, 1) ? new[] {new Result(inventory.Get(Resource.Geode), robots)} : ArraySegment<Result>.Empty;
+            if (inventory.Has(Resource.Geode, 1)) {
+                result.Geodes = Math.Max(inventory.Get(Resource.Geode), result.Geodes);
+            }
+
+            return;
         }
 
         // so we still have work to do
@@ -233,13 +251,15 @@ public class Simulation {
             robots.Add(nextRobot);
             if (currentMinute >= _maxMinute - 1) {
                 // we do not need to split up any more
-                return Work(currentMinute + 1, inventory, robots, nextRobotType);
+                Work(result, currentMinute + 1, inventory, robots, nextRobotType);
+                return;
             }
 
-            return WorkOnAllResources(currentMinute + 1, inventory, robots);
+            WorkOnAllResources(result, currentMinute + 1, inventory, robots);
+            return;
         }
 
         // the next robot was not build yet, because the resources are missing; just work another minute
-        return Work(currentMinute + 1, inventory, robots, nextRobotType);
+        Work(result, currentMinute + 1, inventory, robots, nextRobotType);
     }
 }
