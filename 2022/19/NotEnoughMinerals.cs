@@ -181,7 +181,7 @@ public record Blueprint {
 }
 
 public class Simulation {
-    internal static readonly Resource[] Resources = { Resource.Ore, Resource.Clay, Resource.Obsidian, Resource.Geode };
+    internal static readonly Resource[] Resources = Enum.GetValues<Resource>();
 
     record Result {
         public int Geodes { get; set; }
@@ -238,10 +238,9 @@ public class Simulation {
         }
     }
 
-    static readonly Resource[] resources = Enum.GetValues<Resource>();
     bool AreRobotsCollectingForRobot(int currentMinute, in Inventory inventory, in Inventory robots, Resource robotToBuild) {
         var robotCost = _blueprint.GetRobotCost(robotToBuild);
-        foreach (var resource in resources) {
+        foreach (var resource in Resources) {
             int count = robots[resource];
             if (inventory[resource] + ((_maxMinute - currentMinute - 1) * count) < robotCost[resource]) {
                 return false;
