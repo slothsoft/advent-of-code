@@ -117,22 +117,6 @@ public class Inventory {
     }
 }
 
-public class Robot {
-    public Resource Collecting { get; }
-
-    public Robot(Resource collecting) {
-        Collecting = collecting;
-    }
-
-    public void Work(Inventory inventory) {
-        inventory.Increment(Collecting, 1);
-    }
-
-    public override string ToString() {
-        return "Robot " + Collecting;
-    }
-}
-
 public record Blueprint {
     public int Id { get; init; }
     public IDictionary<Resource, int>[] RobotCosts { get; init; } = Array.Empty<IDictionary<Resource, int>>();
@@ -173,8 +157,11 @@ public class Simulation {
     public int Start() {
         try {
             var inventory = new Inventory();
-            var robots = new List<Robot> {
-                new(Resource.Ore),
+            var robots = new Dictionary<Resource, int> {
+                [Resource.Ore] = 1,
+                [Resource.Clay] = 0,
+                [Resource.Obsidian] = 0,
+                [Resource.Geode] = 0,
             };
             var result = new Result();
             WorkOnAllResources(result, 1, inventory, robots);
@@ -189,9 +176,9 @@ public class Simulation {
         }
     }
 
-    void WorkOnAllResources(Result result, int currentMinute, Inventory inventory, IList<Robot> robots) {
+    void WorkOnAllResources(Result result, int currentMinute, Inventory inventory, IDictionary<Resource, int> robots) {
         // There already is a solution - and we can't reach it
-        int maximumCurrentGeodes = (_maxMinute - currentMinute + 1) * robots.Count(r => r.Collecting == Resource.Geode);
+        int maximumCurrentGeodes = (_maxMinute - currentMinute + 1) * robots[Resource.Geode];
         int maximumFutureGeodes = (_maxMinute - currentMinute) * (_maxMinute - currentMinute) / 2;
         if (inventory.Get(Resource.Geode) + maximumCurrentGeodes + maximumFutureGeodes < result.Geodes) {
             return;
@@ -204,19 +191,19 @@ public class Simulation {
             }
 
             // do not build robots after the maximum for their resource is reached
-            if (resource != Resource.Geode && robots.Count(r => r.Collecting == resource) >= _blueprint.GetMaxResourceCount(resource)) {
+            if (resource != Resource.Geode && robots[resource] >= _blueprint.GetMaxResourceCount(resource)) {
                 continue;
             }
 
             // copy everything and split into new work threads
-            Work(result, currentMinute, inventory.Copy(), new List<Robot>(robots), resource);
+            Work(result, currentMinute, inventory.Copy(), new Dictionary<Resource, int>(robots), resource);
         }
     }
 
-    bool AreRobotsCollectingForRobot(int currentMinute, Inventory inventory, IList<Robot> robots, Resource robotToBuild) {
+    bool AreRobotsCollectingForRobot(int currentMinute, Inventory inventory, IDictionary<Resource, int> robots, Resource robotToBuild) {
         var robotCost = _blueprint.GetRobotCost(robotToBuild);
         foreach (var resource in robotCost.Keys) {
-            int count = robots.Count(r => r.Collecting == resource);
+            int count = robots[resource];
             if (inventory.Get(resource) + ((_maxMinute - currentMinute - 1) * count) < robotCost[resource]) {
                 return false;
             }
@@ -225,18 +212,18 @@ public class Simulation {
         return true;
     }
 
-    void Work(Result result, int currentMinute, Inventory inventory, IList<Robot> robots, Resource nextRobotType) {
+    void Work(Result result, int currentMinute, Inventory inventory, IDictionary<Resource, int> robots, Resource nextRobotType) {
         // check if we can build the next robot type
-        Robot? nextRobot = null;
+        bool hasBuiltRobot = false;
         var nextRobotCost = _blueprint.GetRobotCost(nextRobotType);
         if (inventory.Has(nextRobotCost)) {
-            nextRobot = new Robot(nextRobotType);
+            hasBuiltRobot = true;
             inventory.Decrement(nextRobotCost);
         }
 
         // let  the robots do their thing
         foreach (var robot in robots) {
-            robot.Work(inventory);
+            inventory.Increment(robot.Key, robot.Value);
         }
 
         // stop the recursiveness
@@ -251,9 +238,9 @@ public class Simulation {
 
         // so we still have work to do
 
-        if (nextRobot != null) {
+        if (hasBuiltRobot) {
             // since the next robot was build, we need to split up to search for the best next robot
-            robots.Add(nextRobot);
+            robots[nextRobotType]++;
             if (currentMinute >= _maxMinute - 1) {
                 // we do not need to split up any more
                 Work(result, currentMinute + 1, inventory, robots, nextRobotType);
