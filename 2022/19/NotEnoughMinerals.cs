@@ -78,42 +78,59 @@ public enum Resource {
     Geode,
 }
 
-public class Inventory {
-    readonly int[] _resources;
+public struct Inventory {
+    int oreCount;
+    int clayCount;
+    int obsidianCount;
+    int geodeCount;
 
-    public Inventory() : this(new int[(int)Resource.Geode + 1]) {
-    }
-
-    Inventory(int[] resources) {
-        _resources = resources;
+    public int this[Resource resource] {
+        get {
+            return resource switch {
+                Resource.Ore => oreCount,
+                Resource.Clay => clayCount,
+                Resource.Obsidian => obsidianCount,
+                Resource.Geode => geodeCount,
+                _ => throw new NotImplementedException(),
+            };
+        }
+        set {
+            switch (resource) {
+                case Resource.Ore:
+                    oreCount = value;
+                    break;
+                case Resource.Clay:
+                    clayCount = value;
+                    break;
+                case Resource.Obsidian:
+                    obsidianCount = value;
+                    break;
+                case Resource.Geode:
+                    geodeCount = value;
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
     }
 
     public bool Has(IDictionary<Resource, int> resources) {
-        return resources.All(e => Has(e.Key, e.Value));
+        foreach (var (resource, count) in resources) {
+            if (!Has(resource, count)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public bool Has(Resource resource, int count) {
-        return _resources[(int)resource] >= count;
+        return this[resource] >= count;
     }
 
     public void Decrement(IDictionary<Resource, int> resources) {
         foreach (var resource in resources) {
-            Increment(resource.Key, -resource.Value);
+            this[resource.Key] -= resource.Value;
         }
-    }
-
-    public void Increment(Resource resource, int count) {
-        _resources[(int)resource] += count;
-    }
-
-    public int Get(Resource resource) {
-        return _resources[(int)resource];
-    }
-
-    public Inventory Copy() {
-        int[] copyOfResources = new int[_resources.Length];
-        Array.Copy(_resources, copyOfResources, _resources.Length);
-        return new Inventory(copyOfResources);
     }
 }
 
@@ -176,11 +193,11 @@ public class Simulation {
         }
     }
 
-    void WorkOnAllResources(Result result, int currentMinute, Inventory inventory, IDictionary<Resource, int> robots) {
+    void WorkOnAllResources(Result result, int currentMinute, in Inventory inventory, IDictionary<Resource, int> robots) {
         // There already is a solution - and we can't reach it
         int maximumCurrentGeodes = (_maxMinute - currentMinute + 1) * robots[Resource.Geode];
         int maximumFutureGeodes = (_maxMinute - currentMinute) * (_maxMinute - currentMinute) / 2;
-        if (inventory.Get(Resource.Geode) + maximumCurrentGeodes + maximumFutureGeodes < result.Geodes) {
+        if (inventory[Resource.Geode] + maximumCurrentGeodes + maximumFutureGeodes < result.Geodes) {
             return;
         }
 
@@ -196,15 +213,15 @@ public class Simulation {
             }
 
             // copy everything and split into new work threads
-            Work(result, currentMinute, inventory.Copy(), new Dictionary<Resource, int>(robots), resource);
+            Work(result, currentMinute, inventory, new Dictionary<Resource, int>(robots), resource);
         }
     }
 
-    bool AreRobotsCollectingForRobot(int currentMinute, Inventory inventory, IDictionary<Resource, int> robots, Resource robotToBuild) {
+    bool AreRobotsCollectingForRobot(int currentMinute, in Inventory inventory, IDictionary<Resource, int> robots, Resource robotToBuild) {
         var robotCost = _blueprint.GetRobotCost(robotToBuild);
         foreach (var resource in robotCost.Keys) {
             int count = robots[resource];
-            if (inventory.Get(resource) + ((_maxMinute - currentMinute - 1) * count) < robotCost[resource]) {
+            if (inventory[resource] + ((_maxMinute - currentMinute - 1) * count) < robotCost[resource]) {
                 return false;
             }
         }
@@ -223,16 +240,13 @@ public class Simulation {
 
         // let  the robots do their thing
         foreach (var robot in robots) {
-            inventory.Increment(robot.Key, robot.Value);
+            inventory[robot.Key] += robot.Value;
         }
 
         // stop the recursiveness
         if (currentMinute >= _maxMinute) {
             // but we do not count this as a result if there are no geodes
-            if (inventory.Has(Resource.Geode, 1)) {
-                result.Geodes = Math.Max(inventory.Get(Resource.Geode), result.Geodes);
-            }
-
+            result.Geodes = Math.Max(inventory[Resource.Geode], result.Geodes);
             return;
         }
 
