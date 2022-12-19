@@ -114,6 +114,13 @@ public struct Inventory {
         }
     }
 
+    public bool Has(in Inventory resources) {
+        return oreCount >= resources.oreCount
+            && clayCount >= resources.clayCount
+            && obsidianCount >= resources.obsidianCount
+            && geodeCount >= resources.geodeCount;
+    }
+
     public bool Has(IDictionary<Resource, int> resources) {
         foreach (var (resource, count) in resources) {
             if (!Has(resource, count)) {
@@ -132,6 +139,14 @@ public struct Inventory {
             this[resource.Key] -= resource.Value;
         }
     }
+
+    public void Increment(in Inventory resources) {
+        oreCount += resources.oreCount;
+        clayCount += resources.clayCount;
+        obsidianCount += resources.obsidianCount;
+        geodeCount += resources.geodeCount;
+    }
+
 }
 
 public record Blueprint {
@@ -174,11 +189,8 @@ public class Simulation {
     public int Start() {
         try {
             var inventory = new Inventory();
-            var robots = new Dictionary<Resource, int> {
+            var robots = new Inventory {
                 [Resource.Ore] = 1,
-                [Resource.Clay] = 0,
-                [Resource.Obsidian] = 0,
-                [Resource.Geode] = 0,
             };
             var result = new Result();
             WorkOnAllResources(result, 1, inventory, robots);
@@ -193,7 +205,7 @@ public class Simulation {
         }
     }
 
-    void WorkOnAllResources(Result result, int currentMinute, in Inventory inventory, IDictionary<Resource, int> robots) {
+    void WorkOnAllResources(Result result, int currentMinute, in Inventory inventory, in Inventory robots) {
         // There already is a solution - and we can't reach it
         int maximumCurrentGeodes = (_maxMinute - currentMinute + 1) * robots[Resource.Geode];
         int maximumFutureGeodes = (_maxMinute - currentMinute) * (_maxMinute - currentMinute) / 2;
@@ -213,11 +225,11 @@ public class Simulation {
             }
 
             // copy everything and split into new work threads
-            Work(result, currentMinute, inventory, new Dictionary<Resource, int>(robots), resource);
+            Work(result, currentMinute, inventory, robots, resource);
         }
     }
 
-    bool AreRobotsCollectingForRobot(int currentMinute, in Inventory inventory, IDictionary<Resource, int> robots, Resource robotToBuild) {
+    bool AreRobotsCollectingForRobot(int currentMinute, in Inventory inventory, in Inventory robots, Resource robotToBuild) {
         var robotCost = _blueprint.GetRobotCost(robotToBuild);
         foreach (var resource in robotCost.Keys) {
             int count = robots[resource];
@@ -229,7 +241,7 @@ public class Simulation {
         return true;
     }
 
-    void Work(Result result, int currentMinute, Inventory inventory, IDictionary<Resource, int> robots, Resource nextRobotType) {
+    void Work(Result result, int currentMinute, Inventory inventory, Inventory robots, Resource nextRobotType) {
         // check if we can build the next robot type
         bool hasBuiltRobot = false;
         var nextRobotCost = _blueprint.GetRobotCost(nextRobotType);
@@ -239,9 +251,7 @@ public class Simulation {
         }
 
         // let  the robots do their thing
-        foreach (var robot in robots) {
-            inventory[robot.Key] += robot.Value;
-        }
+        inventory.Increment(robots);
 
         // stop the recursiveness
         if (currentMinute >= _maxMinute) {
