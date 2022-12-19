@@ -38,7 +38,7 @@ public class NotEnoughMinerals {
         };
     }
 
-    static IDictionary<Resource, int> ParseCosts(string costs) {
+    static Inventory ParseCosts(string costs) {
         // 2 ore, 3 ore and 14 clay
         return costs.Split(" and ").Select(s => {
             string[] numberAndResource = s.Trim().Split(" ");
@@ -114,6 +114,14 @@ public struct Inventory {
         }
     }
 
+    public static implicit operator Inventory(Dictionary<Resource, int> resources) {
+        var inventory = new Inventory();
+        foreach (var (resource, count) in resources) {
+            inventory[resource] = count;
+        }
+        return inventory;
+    }
+
     public bool Has(in Inventory resources) {
         return oreCount >= resources.oreCount
             && clayCount >= resources.clayCount
@@ -134,10 +142,11 @@ public struct Inventory {
         return this[resource] >= count;
     }
 
-    public void Decrement(IDictionary<Resource, int> resources) {
-        foreach (var resource in resources) {
-            this[resource.Key] -= resource.Value;
-        }
+    public void Decrement(in Inventory resources) {
+        oreCount -= resources.oreCount;
+        clayCount -= resources.clayCount;
+        obsidianCount -= resources.obsidianCount;
+        geodeCount -= resources.geodeCount;
     }
 
     public void Increment(in Inventory resources) {
@@ -151,11 +160,11 @@ public struct Inventory {
 
 public record Blueprint {
     public int Id { get; init; }
-    public IDictionary<Resource, int>[] RobotCosts { get; init; } = Array.Empty<IDictionary<Resource, int>>();
+    public Inventory[] RobotCosts { get; init; } = Array.Empty<Inventory>();
 
     int[]? _maxResourceCount;
 
-    public IDictionary<Resource, int> GetRobotCost(Resource resource) {
+    public Inventory GetRobotCost(Resource resource) {
         return RobotCosts[(int)resource];
     }
 
@@ -163,7 +172,7 @@ public record Blueprint {
         if (_maxResourceCount == null) {
             _maxResourceCount = new int[RobotCosts.Length];
             foreach (var r in Simulation.Resources) {
-                _maxResourceCount[(int)r] = RobotCosts.Where(c => c.ContainsKey(r)).Select(c => c[r]).DefaultIfEmpty().Max();
+                _maxResourceCount[(int)r] = RobotCosts.Max(c => c[r]);
             }
         }
 
@@ -229,9 +238,10 @@ public class Simulation {
         }
     }
 
+    static readonly Resource[] resources = Enum.GetValues<Resource>();
     bool AreRobotsCollectingForRobot(int currentMinute, in Inventory inventory, in Inventory robots, Resource robotToBuild) {
         var robotCost = _blueprint.GetRobotCost(robotToBuild);
-        foreach (var resource in robotCost.Keys) {
+        foreach (var resource in resources) {
             int count = robots[resource];
             if (inventory[resource] + ((_maxMinute - currentMinute - 1) * count) < robotCost[resource]) {
                 return false;

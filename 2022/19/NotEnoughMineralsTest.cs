@@ -10,7 +10,7 @@ public class NotEnoughMineralsTest {
     public void Example1Simulation1() {
         var simulation = new Simulation(new Blueprint {
             Id = 1,
-            RobotCosts = new IDictionary<Resource, int>[] {
+            RobotCosts = new Inventory[] {
                 // Each ore robot costs 4 ore.
                 new Dictionary<Resource, int> {
                     { Resource.Ore, 4 },
@@ -39,7 +39,7 @@ public class NotEnoughMineralsTest {
     public void Example1Simulation2() {
         var simulation = new Simulation(new Blueprint {
             Id = 2,
-            RobotCosts = new IDictionary<Resource, int>[] {
+            RobotCosts = new Inventory[] {
                 // Each ore robot costs 2 ore.
                 new Dictionary<Resource, int> {
                     { Resource.Ore, 2 },
