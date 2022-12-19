@@ -12,3 +12,6 @@ AdventOfCode.sln.*
 # General files
 2000*/
 Calendar/environment.json
+
+# Visual Studio
+.vs/
