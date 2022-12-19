@@ -83,16 +83,20 @@ public class NotEnoughMineralsTest {
     public void Example2() {
         var simulation = new NotEnoughMinerals(File.ReadAllLines(@"19\example.txt")) {
             MaxMinute = 32,
+            AllowedBlueprints = new[] {1, 2, 3},
         };
         
-        Assert.AreEqual(62, simulation.CalculateMaxGeodeCount());
+        Assert.AreEqual(56 * 62, simulation.CalculateProductOfGeodeCount());
     }
 
     [Test]
     public void Puzzle2() {
-        var simulation = new NotEnoughMinerals(File.ReadAllLines(@"19\input.txt"));
-        var result = simulation.CalculateQualityLevels();
-        // Assert.AreEqual(1081, result);
-        Assert.Pass("Puzzle 1: " + result);
+        var simulation = new NotEnoughMinerals(File.ReadAllLines(@"19\input.txt")) {
+            MaxMinute = 32,
+            AllowedBlueprints = new[] {1, 2, 3},
+        };
+        var result = simulation.CalculateProductOfGeodeCount();
+        Assert.AreEqual(2415, result);
+        Assert.Pass("Puzzle 2: " + result);
     }
 }
