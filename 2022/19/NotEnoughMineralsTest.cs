@@ -5,11 +5,12 @@ using NUnit.Framework;
 namespace AoC._19;
 
 public class NotEnoughMineralsTest {
-    
+
     [Test]
     public void Example1Simulation1() {
         var simulation = new Simulation(new Blueprint {
-            Id = 1,RobotCosts = new IDictionary<Resource, int>[] {
+            Id = 1,
+            RobotCosts = new IDictionary<Resource, int>[] {
                 // Each ore robot costs 4 ore.
                 new Dictionary<Resource, int> {
                     { Resource.Ore, 4 },
@@ -30,10 +31,10 @@ public class NotEnoughMineralsTest {
                 },
             }
         });
-        
+
         Assert.AreEqual(9, simulation.Start());
     }
-    
+
     [Test]
     public void Example1Simulation2() {
         var simulation = new Simulation(new Blueprint {
@@ -59,21 +60,21 @@ public class NotEnoughMineralsTest {
                 },
             }
         });
-        
+
         Assert.AreEqual(12, simulation.Start());
     }
-    
+
     [Test]
     public void Example1() {
         var simulation = new NotEnoughMinerals(File.ReadAllLines(@"19\example.txt"));
-        
+
         Assert.AreEqual(33, simulation.CalculateQualityLevels());
     }
-    
+
     [Test]
     public void Puzzle1() {
         var simulation = new NotEnoughMinerals(File.ReadAllLines(@"19\input.txt"));
-        var result = simulation.CalculateQualityLevels();
+        int result = simulation.CalculateQualityLevels();
         Assert.AreEqual(1081, result);
         Assert.Pass("Puzzle 1: " + result);
     }
@@ -82,9 +83,9 @@ public class NotEnoughMineralsTest {
     public void Example2() {
         var simulation = new NotEnoughMinerals(File.ReadAllLines(@"19\example.txt")) {
             MaxMinute = 32,
-            AllowedBlueprints = new[] {1, 2, 3},
+            AllowedBlueprints = new[] { 1, 2, 3 },
         };
-        
+
         Assert.AreEqual(56 * 62, simulation.CalculateProductOfGeodeCount());
     }
 
@@ -92,9 +93,9 @@ public class NotEnoughMineralsTest {
     public void Puzzle2() {
         var simulation = new NotEnoughMinerals(File.ReadAllLines(@"19\input.txt")) {
             MaxMinute = 32,
-            AllowedBlueprints = new[] {1, 2, 3},
+            AllowedBlueprints = new[] { 1, 2, 3 },
         };
-        var result = simulation.CalculateProductOfGeodeCount();
+        int result = simulation.CalculateProductOfGeodeCount();
         Assert.AreEqual(2415, result);
         Assert.Pass("Puzzle 2: " + result);
     }
