@@ -18,6 +18,9 @@ public class NotEnoughMinerals {
         _blueprints = lines.Select(ParseBlueprint).ToArray();
     }
 
+    public int MaxMinute { get; init; } = 24;
+    public int[]? AllowedBlueprints { get; init; } = null;
+    
     private static Blueprint ParseBlueprint(string line) {
         // Blueprint 1: Each ore robot costs 4 ore.
         //     Each clay robot costs 2 ore.
@@ -39,15 +42,29 @@ public class NotEnoughMinerals {
         // 2 ore, 3 ore and 14 clay
         return costs.Split(" and ").Select(s => {
             var numberAndResource = s.Trim().Split(" ");
-            return new {Number = int.Parse(numberAndResource[0]), Resource = (Resource) Enum.Parse(typeof(Resource), char.ToUpper(numberAndResource[1][0]) + numberAndResource[1].Substring(1))};
+            return new {
+                Number = int.Parse(numberAndResource[0]),
+                Resource = (Resource) Enum.Parse(typeof(Resource), char.ToUpper(numberAndResource[1][0]) + numberAndResource[1].Substring(1))
+            };
         }).ToDictionary(e => e.Resource, e => e.Number);
     }
 
     public int CalculateQualityLevels() {
-        var result = 0;
+        return SimulateMaxGeodeCount().Sum(e => e.Key * e.Value);
+    }
+
+    public int CalculateMaxGeodeCount() {
+        return SimulateMaxGeodeCount().Sum(e => e.Value);
+    }
+    
+    private IDictionary<int, int> SimulateMaxGeodeCount() {
+        var result = new Dictionary<int, int>();
         foreach (var blueprint in _blueprints) {
-            var simulation = new Simulation(blueprint);
-            result += blueprint.Id * simulation.Start();
+            if (AllowedBlueprints == null || AllowedBlueprints.Contains(blueprint.Id)) {
+                var simulation = new Simulation(blueprint, MaxMinute);
+                var simulationResult = simulation.Start();
+                result[blueprint.Id] = simulationResult;
+            }
         }
 
         return result;
@@ -131,9 +148,11 @@ public class Simulation {
     private record Result(int Geodes, IList<Robot> Robots);
 
     private readonly Blueprint _blueprint;
+    private readonly int _maxMinute;
 
-    public Simulation(Blueprint blueprint) {
+    public Simulation(Blueprint blueprint, int maxMinute = 24) {
         _blueprint = blueprint;
+        _maxMinute = maxMinute;
     }
 
     public int Start() {
@@ -149,8 +168,9 @@ public class Simulation {
             if (result == null) {
                 Console.WriteLine($"Blueprint {_blueprint.Id} did not return any result");
             }
+
             return result?.Geodes ?? 0;
-        } catch (Exception e) {
+        } catch (Exception) {
             Console.WriteLine($"Blueprint {_blueprint} was broken somehow");
             throw;
         }
@@ -158,10 +178,13 @@ public class Simulation {
 
     private IEnumerable<Result> WorkOnAllResources(int currentMinute, Inventory inventory, IList<Robot> robots) {
         var possibleResources = Resources
-            .Where(resource => AreRobotsCollectingForRobot(robots, resource))
-            .ToArray();
+            .Where(resource => AreRobotsCollectingForRobot(currentMinute, inventory, robots, resource))
+            // do not build robots after the maximum for their resource is reached
+            .Where(resource => resource == Resource.Geode || robots.Count(r => r.Collecting == resource) <
+                               _blueprint.RobotCosts.Where(c => c.ContainsKey(resource)).Select(c => c[resource]).Max())
+            .ToList();
 
-        return possibleResources.Length switch {
+        return possibleResources.Count switch {
             // do nothing and be happy this reduction was done
             0 => ArraySegment<Result>.Empty,
             // we do not need to create copies
@@ -171,10 +194,11 @@ public class Simulation {
         };
     }
 
-    private bool AreRobotsCollectingForRobot(IList<Robot> robots, Resource robotToBuild) {
+    private bool AreRobotsCollectingForRobot(int currentMinute, Inventory inventory, IList<Robot> robots, Resource robotToBuild) {
         var robotCost = _blueprint.GetRobotCost(robotToBuild);
         foreach (var resource in robotCost.Keys) {
-            if (robots.All(r => r.Collecting != resource)) {
+            var count = robots.Count(r => r.Collecting == resource);
+            if (inventory.Get(resource) + (_maxMinute - currentMinute - 1) * count < robotCost[resource]) {
                 return false;
             }
         }
@@ -196,8 +220,9 @@ public class Simulation {
             robot.Work(inventory);
         }
 
-        if (currentMinute >= 24) {
-            // stop the recursiveness (but we do not count this as a result if there are no geodes
+        // stop the recursiveness
+        if (currentMinute >= _maxMinute) {
+            // but we do not count this as a result if there are no geodes
             return inventory.Has(Resource.Geode, 1) ? new[] {new Result(inventory.Get(Resource.Geode), robots)} : ArraySegment<Result>.Empty;
         }
 
@@ -206,7 +231,7 @@ public class Simulation {
         if (nextRobot != null) {
             // since the next robot was build, we need to split up to search for the best next robot
             robots.Add(nextRobot);
-            if (currentMinute >= 23) {
+            if (currentMinute >= _maxMinute - 1) {
                 // we do not need to split up any more
                 return Work(currentMinute + 1, inventory, robots, nextRobotType);
             }
