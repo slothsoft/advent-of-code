@@ -19,7 +19,7 @@ public class NotEnoughMinerals {
     }
 
     public int MaxMinute { get; init; } = 24;
-    public int[]? AllowedBlueprints { get; init; } = null;
+    public int[]? AllowedBlueprints { get; init; }
 
     private static Blueprint ParseBlueprint(string line) {
         // Blueprint 1: Each ore robot costs 4 ore.
@@ -190,7 +190,10 @@ public class Simulation {
     }
 
     private void WorkOnAllResources(Result result, int currentMinute, Inventory inventory, IList<Robot> robots) {
+        // There already is a solution - and we can't reach it
         var maximumCurrentGeodes = (_maxMinute - currentMinute + 1) * robots.Count(r => r.Collecting == Resource.Geode);
+        var maximumFutureGeodes = (_maxMinute - currentMinute) * (_maxMinute - currentMinute) / 2;
+        if (inventory.Get(Resource.Geode) + maximumCurrentGeodes + maximumFutureGeodes < result.Geodes) return;
         
         foreach (var resource in Resources) {
             // if the existing robots will not reach this robot's cost in the runtime of the simulation
@@ -198,10 +201,6 @@ public class Simulation {
 
             // do not build robots after the maximum for their resource is reached
             if (resource != Resource.Geode && robots.Count(r => r.Collecting == resource) >= _blueprint.GetMaxResourceCount(resource)) continue;
-
-            // There already is a solution - and we can't reach it
-            var maximumFutureGeodes = (_maxMinute - currentMinute) * (_maxMinute - currentMinute) / 2;
-            if (inventory.Get(Resource.Geode) + maximumCurrentGeodes + maximumFutureGeodes < result.Geodes) continue;
 
             // copy everything and split into new work threads
             Work(result, currentMinute, inventory.Copy(), new List<Robot>(robots), resource);
