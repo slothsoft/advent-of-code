@@ -38,7 +38,7 @@ dotnet_style_parentheses_in_other_operators = never_if_unnecessary:warning
 dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:warning
 
 # Einstellungen für Modifizierer
-dotnet_style_require_accessibility_modifiers = omit_if_default:warning
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
 
 # Einstellungen für Ausdrucksebene
 dotnet_style_coalesce_expression = true:warning
@@ -65,7 +65,7 @@ dotnet_code_quality_unused_parameters = all:warning
 
 # Var-Einstellungen
 csharp_style_var_elsewhere = true:warning
-csharp_style_var_for_built_in_types = false:warning
+csharp_style_var_for_built_in_types = true:warning
 csharp_style_var_when_type_is_apparent = true:warning
 
 # Ausdruckskörpermember
@@ -171,13 +171,17 @@ dotnet_naming_rule.method_member_should_be_pascalcase.severity = warning
 dotnet_naming_rule.method_member_should_be_pascalcase.symbols = method_member
 dotnet_naming_rule.method_member_should_be_pascalcase.style = pascalcase
 
+dotnet_naming_rule.property_member_should_be_pascalcase.severity = warning
+dotnet_naming_rule.property_member_should_be_pascalcase.symbols = property_member
+dotnet_naming_rule.property_member_should_be_pascalcase.style = pascalcase
+
 dotnet_naming_rule.constants_should_be_capslock.severity = warning
 dotnet_naming_rule.constants_should_be_capslock.symbols = constants
 dotnet_naming_rule.constants_should_be_capslock.style = capslock
 
-dotnet_naming_rule.non_method_member_should_be_camelcase.severity = warning
-dotnet_naming_rule.non_method_member_should_be_camelcase.symbols = non_method_member
-dotnet_naming_rule.non_method_member_should_be_camelcase.style = camelcase
+dotnet_naming_rule.field_member_should_be_camelcase.severity = warning
+dotnet_naming_rule.field_member_should_be_camelcase.symbols = field_member
+dotnet_naming_rule.field_member_should_be_camelcase.style = camelcase
 
 dotnet_naming_rule.local_variable_should_be_camelcase.severity = warning
 dotnet_naming_rule.local_variable_should_be_camelcase.symbols = local_variable
@@ -197,9 +201,13 @@ dotnet_naming_symbols.type.applicable_kinds = namespace, type_parameter, class, 
 dotnet_naming_symbols.type.applicable_accessibilities = *
 dotnet_naming_symbols.type.required_modifiers = 
 
-dotnet_naming_symbols.non_method_member.applicable_kinds = property, field
-dotnet_naming_symbols.non_method_member.applicable_accessibilities = public, internal, friend, protected, protected_internal, protected_friend
-dotnet_naming_symbols.non_method_member.required_modifiers = 
+dotnet_naming_symbols.property_member.applicable_kinds = property
+dotnet_naming_symbols.property_member.applicable_accessibilities = public, internal, friend, protected, protected_internal, protected_friend
+dotnet_naming_symbols.property_member.required_modifiers = 
+
+dotnet_naming_symbols.field_member.applicable_kinds = field
+dotnet_naming_symbols.field_member.applicable_accessibilities = public, internal, friend, protected, protected_internal, protected_friend
+dotnet_naming_symbols.field_member.required_modifiers = 
 
 dotnet_naming_symbols.event.applicable_kinds = event
 dotnet_naming_symbols.event.applicable_accessibilities = *
