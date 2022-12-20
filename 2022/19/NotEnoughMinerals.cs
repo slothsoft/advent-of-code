@@ -121,27 +121,22 @@ public struct Inventory {
         return inventory;
     }
 
-    public bool Has(in Inventory resources) {
+    private bool Has(in Inventory resources) {
         return oreCount >= resources.oreCount
             && clayCount >= resources.clayCount
             && obsidianCount >= resources.obsidianCount
             && geodeCount >= resources.geodeCount;
     }
 
-    public bool Has(IDictionary<Resource, int> resources) {
-        foreach (var (resource, count) in resources) {
-            if (!Has(resource, count)) {
-                return false;
-            }
+    public bool TryDecrement(in Inventory resources) {
+        if (!Has(resources)) {
+            return false;
         }
+        Decrement(resources);
         return true;
     }
 
-    public bool Has(Resource resource, int count) {
-        return this[resource] >= count;
-    }
-
-    public void Decrement(in Inventory resources) {
+    private void Decrement(in Inventory resources) {
         oreCount -= resources.oreCount;
         clayCount -= resources.clayCount;
         obsidianCount -= resources.obsidianCount;
@@ -154,7 +149,6 @@ public struct Inventory {
         obsidianCount += resources.obsidianCount;
         geodeCount += resources.geodeCount;
     }
-
 }
 
 public record Blueprint {
@@ -251,12 +245,7 @@ public class Simulation {
 
     private void Work(Result result, int currentMinute, Inventory inventory, Inventory robots, Resource nextRobotType) {
         // check if we can build the next robot type
-        var hasBuiltRobot = false;
-        var nextRobotCost = _blueprint.GetRobotCost(nextRobotType);
-        if (inventory.Has(nextRobotCost)) {
-            hasBuiltRobot = true;
-            inventory.Decrement(nextRobotCost);
-        }
+        var hasBuiltRobot = inventory.TryDecrement(_blueprint.GetRobotCost(nextRobotType));
 
         // let  the robots do their thing
         inventory.Increment(robots);
