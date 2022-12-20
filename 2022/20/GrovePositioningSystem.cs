@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace AoC._20;
 
@@ -9,29 +7,37 @@ namespace AoC._20;
 /// <a href="https://adventofcode.com/2022/day/20">Day 20: Grove Positioning System</a>
 /// </summary>
 public class GrovePositioningSystem {
-    private readonly int[] input;
+    private readonly long[] _input;
 
-    public GrovePositioningSystem(string[] lines) {
-        input = lines.Select(int.Parse).ToArray();
+    public GrovePositioningSystem(IEnumerable<string> lines) : this(lines.Select(long.Parse)) {
+    }
+    
+    public GrovePositioningSystem(IEnumerable<long> lines) {
+        _input = lines.ToArray();
     }
 
-    public int[] CalculateGrooveCoordinates() {
+    public long DecryptionKey { get; init; } = 1;
+    public long MixCount { get; init; } = 1;
+
+    public long[] CalculateGrooveCoordinates() {
         var resultingFile = MixFileAsCircularList();
-        // Console.WriteLine(string.Join(", ", resultingFile.ToArray(1)));
+        // Console.WriteLine("\n" + string.Join(", ", resultingFile.ToArray(0)));
         var indexOfZero = resultingFile.IndexOf(0);
         return new[] {
-            resultingFile.GetAtIndex((indexOfZero + 1000) % input.Length), // X
-            resultingFile.GetAtIndex((indexOfZero + 2000) % input.Length), // Y
-            resultingFile.GetAtIndex((indexOfZero + 3000) % input.Length), // Z
+            resultingFile.GetAtIndex((indexOfZero + 1000) % _input.Length), // X
+            resultingFile.GetAtIndex((indexOfZero + 2000) % _input.Length), // Y
+            resultingFile.GetAtIndex((indexOfZero + 3000) % _input.Length), // Z
         };
     }
 
-    public int[] MixFile(int startNumber = 0) => MixFileAsCircularList().ToArray(startNumber);
+    public long[] MixFile(long startNumber = 0) => MixFileAsCircularList().ToArray(startNumber);
     
-    private CircularList MixFileAsCircularList() {
-        var list  = new CircularList(input);
-        foreach (var number in input) {
-            list.MoveNumber(number);
+    internal CircularList MixFileAsCircularList() {
+        var list  = new CircularList(_input.Select(i => i * DecryptionKey));
+        for (var m = 0; m < MixCount; m++) {
+            for (var i = 0; i < _input.Length; i++) {
+                list.MoveNumberAt(i);
+            }
         }
         return list;
     }
@@ -39,14 +45,17 @@ public class GrovePositioningSystem {
 
 class CircularList {
 
-    private readonly IList<int> _list;
+    private readonly IList<long> _list;
+    private readonly IList<int> _indexes;
 
-    public CircularList(IEnumerable<int> enumerable) {
+    public CircularList(IEnumerable<long> enumerable) {
         _list = enumerable.ToList();
+        _indexes = Enumerable.Range(0, _list.Count).ToList();
     }
 
-    public void MoveNumber(int number) {
-        var currentIndex = _list.IndexOf(number);
+    public void MoveNumberAt(int originalIndex) {
+        var currentIndex = _indexes.IndexOf(originalIndex);
+        var number = _list[currentIndex];
         var futureIndex = WrapIndex(currentIndex + number);
 
         if (currentIndex == futureIndex) {
@@ -56,9 +65,12 @@ class CircularList {
         
         _list.RemoveAt(currentIndex);
         _list.Insert(futureIndex, number);
+        
+        _indexes.RemoveAt(currentIndex);
+        _indexes.Insert(futureIndex, originalIndex);
     }
     
-    private int WrapIndex(int index) {
+    private int WrapIndex(long index) {
         var result = index % (_list.Count - 1);
         
         if (result < 0) {
@@ -66,19 +78,19 @@ class CircularList {
                 result += _list.Count - 1;
             }
         }
-        return result;
+        return (int) result;
     }
     
-    public int IndexOf(int number) {
+    public int IndexOf(long number) {
         return _list.IndexOf(number);
     }
 
-    public int GetAtIndex(int index) {
-        return _list[WrapIndex(index)];
+    public long GetAtIndex(int index) {
+        return _list[index];
     }
     
-    public int[] ToArray(int startNumber) {
-        var result = new int[_list.Count];
+    public long[] ToArray(long startNumber) {
+        var result = new long[_list.Count];
 
         var arrayIndex = 0;
         var startIndex = _list.IndexOf(startNumber);
