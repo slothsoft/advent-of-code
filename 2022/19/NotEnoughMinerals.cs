@@ -9,10 +9,9 @@ namespace AoC._19;
 /// <a href="https://adventofcode.com/2022/day/19">Day 19: Not Enough Minerals</a>
 /// </summary>
 public class NotEnoughMinerals {
-    static readonly Regex Regex =
+    private static readonly Regex Regex =
         new("(Blueprint |: Each ore robot costs |\\. Each clay robot costs |\\. Each obsidian robot costs |\\. Each geode robot costs |\\.)");
-
-    readonly Blueprint[] _blueprints;
+    private readonly Blueprint[] _blueprints;
 
     public NotEnoughMinerals(string[] lines) {
         _blueprints = lines.Select(ParseBlueprint).ToArray();
@@ -21,12 +20,12 @@ public class NotEnoughMinerals {
     public int MaxMinute { get; init; } = 24;
     public int[]? AllowedBlueprints { get; init; }
 
-    static Blueprint ParseBlueprint(string line) {
+    private static Blueprint ParseBlueprint(string line) {
         // Blueprint 1: Each ore robot costs 4 ore.
         //     Each clay robot costs 2 ore.
         //     Each obsidian robot costs 3 ore and 14 clay.
         //     Each geode robot costs 2 ore and 7 obsidian.
-        string[] split = Regex.Split(line);
+        var split = Regex.Split(line);
         return new Blueprint {
             Id = int.Parse(split[2]),
             RobotCosts = new[] {
@@ -38,10 +37,10 @@ public class NotEnoughMinerals {
         };
     }
 
-    static Inventory ParseCosts(string costs) {
+    private static Inventory ParseCosts(string costs) {
         // 2 ore, 3 ore and 14 clay
         return costs.Split(" and ").Select(s => {
-            string[] numberAndResource = s.Trim().Split(" ");
+            var numberAndResource = s.Trim().Split(" ");
             return new {
                 Number = int.Parse(numberAndResource[0]),
                 Resource = (Resource)Enum.Parse(typeof(Resource), char.ToUpper(numberAndResource[1][0]) + numberAndResource[1][1..])
@@ -57,12 +56,12 @@ public class NotEnoughMinerals {
         return SimulateMaxGeodeCount().Values.Aggregate((a, b) => a * b);
     }
 
-    IDictionary<int, int> SimulateMaxGeodeCount() {
+    private IDictionary<int, int> SimulateMaxGeodeCount() {
         var result = new Dictionary<int, int>();
         foreach (var blueprint in _blueprints) {
             if (AllowedBlueprints == null || AllowedBlueprints.Contains(blueprint.Id)) {
                 var simulation = new Simulation(blueprint, MaxMinute);
-                int simulationResult = simulation.Start();
+                var simulationResult = simulation.Start();
                 result[blueprint.Id] = simulationResult;
             }
         }
@@ -79,10 +78,10 @@ public enum Resource {
 }
 
 public struct Inventory {
-    int oreCount;
-    int clayCount;
-    int obsidianCount;
-    int geodeCount;
+    private int oreCount;
+    private int clayCount;
+    private int obsidianCount;
+    private int geodeCount;
 
     public int this[Resource resource] {
         get {
@@ -162,7 +161,7 @@ public record Blueprint {
     public int Id { get; init; }
     public Inventory[] RobotCosts { get; init; } = Array.Empty<Inventory>();
 
-    int[]? _maxResourceCount;
+    private int[]? _maxResourceCount;
 
     public Inventory GetRobotCost(Resource resource) {
         return RobotCosts[(int)resource];
@@ -171,7 +170,7 @@ public record Blueprint {
     public int GetMaxResourceCount(Resource resource) {
         if (_maxResourceCount == null) {
             _maxResourceCount = new int[RobotCosts.Length];
-            foreach (var r in Simulation.Resources) {
+            foreach (var r in Simulation.resources) {
                 _maxResourceCount[(int)r] = RobotCosts.Max(c => c[r]);
             }
         }
@@ -181,14 +180,14 @@ public record Blueprint {
 }
 
 public class Simulation {
-    internal static readonly Resource[] Resources = Enum.GetValues<Resource>();
+    internal static readonly Resource[] resources = Enum.GetValues<Resource>();
 
-    record Result {
+    private record Result {
         public int Geodes { get; set; }
     }
 
-    readonly Blueprint _blueprint;
-    readonly int _maxMinute;
+    private readonly Blueprint _blueprint;
+    private readonly int _maxMinute;
 
     public Simulation(Blueprint blueprint, int maxMinute = 24) {
         _blueprint = blueprint;
@@ -214,15 +213,15 @@ public class Simulation {
         }
     }
 
-    void WorkOnAllResources(Result result, int currentMinute, in Inventory inventory, in Inventory robots) {
+    private void WorkOnAllResources(Result result, int currentMinute, in Inventory inventory, in Inventory robots) {
         // There already is a solution - and we can't reach it
-        int maximumCurrentGeodes = (_maxMinute - currentMinute + 1) * robots[Resource.Geode];
-        int maximumFutureGeodes = (_maxMinute - currentMinute) * (_maxMinute - currentMinute) / 2;
+        var maximumCurrentGeodes = (_maxMinute - currentMinute + 1) * robots[Resource.Geode];
+        var maximumFutureGeodes = (_maxMinute - currentMinute) * (_maxMinute - currentMinute) / 2;
         if (inventory[Resource.Geode] + maximumCurrentGeodes + maximumFutureGeodes < result.Geodes) {
             return;
         }
 
-        foreach (var resource in Resources) {
+        foreach (var resource in resources) {
             // if the existing robots will not reach this robot's cost in the runtime of the simulation
             if (!AreRobotsCollectingForRobot(currentMinute, inventory, robots, resource)) {
                 continue;
@@ -238,10 +237,10 @@ public class Simulation {
         }
     }
 
-    bool AreRobotsCollectingForRobot(int currentMinute, in Inventory inventory, in Inventory robots, Resource robotToBuild) {
+    private bool AreRobotsCollectingForRobot(int currentMinute, in Inventory inventory, in Inventory robots, Resource robotToBuild) {
         var robotCost = _blueprint.GetRobotCost(robotToBuild);
-        foreach (var resource in Resources) {
-            int count = robots[resource];
+        foreach (var resource in resources) {
+            var count = robots[resource];
             if (inventory[resource] + ((_maxMinute - currentMinute - 1) * count) < robotCost[resource]) {
                 return false;
             }
@@ -250,9 +249,9 @@ public class Simulation {
         return true;
     }
 
-    void Work(Result result, int currentMinute, Inventory inventory, Inventory robots, Resource nextRobotType) {
+    private void Work(Result result, int currentMinute, Inventory inventory, Inventory robots, Resource nextRobotType) {
         // check if we can build the next robot type
-        bool hasBuiltRobot = false;
+        var hasBuiltRobot = false;
         var nextRobotCost = _blueprint.GetRobotCost(nextRobotType);
         if (inventory.Has(nextRobotCost)) {
             hasBuiltRobot = true;
