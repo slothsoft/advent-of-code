@@ -46,6 +46,7 @@ Some of the challenges where done in a [JavaScript simulation](https://slothsoft
 <a href="./2021/src/test/csharp/18"><img src="./Calendar/Tiles/2021/18.svg" width="150px"></a>
 <a href="./2021/src/test/java/d19"><img src="./Calendar/Tiles/2021/19.svg" width="150px"></a>
 <a href="./2021/src/test/kotlin/d20"><img src="./Calendar/Tiles/2021/20.svg" width="150px"></a>
+<a href="./2021/src/test/kotlin/d21"><img src="./Calendar/Tiles/2021/21.svg" width="150px"></a>
 
 
 # 2019
