@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 
 namespace AoC._22;
 
@@ -20,49 +22,125 @@ public class MonkeyMap {
         Up = 3,
     }
 
-
     public class Map {
-        private readonly Field[][] _fields;
-        private readonly int _cubeSize;
-        private readonly bool _cube;
+        internal readonly IDictionary<string, Square> squares;
+        private readonly int _mapWidth;
+        private readonly int _mapHeight;
+        private readonly int _squareSize;
+        private readonly Square _emptySquare;
 
-        internal int X = int.MaxValue;
-        internal int Y;
-        internal Facing Facing = Facing.Right;
+        internal int x = int.MaxValue;
+        internal int y;
+        internal Facing facing = Facing.Right;
 
         public Map(string[] lines, bool cube) {
-            _cube = cube;
+            _mapHeight = lines.Length - 2;
+            _mapWidth = lines.Take(lines.Length - 2).Max(l => l.Length);
+            _squareSize = _mapWidth % 3 == 0 ? _mapWidth / 3 : _mapWidth / 4;
+            _emptySquare = new Square(0, 0, _squareSize, Field.BlankSpace);
 
-            var maxY = lines.Length - 2;
-            var maxX = lines.Take(lines.Length - 2).Max(l => l.Length);
+            // init squares
+            squares = new Dictionary<string, Square>();
+            for (var sx = 0; sx < _mapWidth; sx += _squareSize) {
+                for (var sy = 0; sy < _mapHeight; sy += _squareSize) {
+                    if (sx >= lines[sy].Length || lines[sy][sx] == (char)Field.BlankSpace) {
+                        // this quadrant is empty
+                    } else {
+                        // the quadrant has a square
+                        var quadrantX = sx / _squareSize;
+                        var quadrantY = sy / _squareSize;
+                        squares[CreateKey(quadrantX, quadrantY)] = new Square(quadrantX, quadrantY, _squareSize, lines);
 
-            // init arrays
-            _fields = new Field[maxX][];
-            for (var x = 0; x < _fields.Length; x++) {
-                _fields[x] = new Field[maxY];
-            }
-
-            // set field values
-            for (var y = 0; y < lines.Length - 2; y++) {
-                for (var x = 0; x < lines[y].Length; x++) {
-                    _fields[x][y] = (Field) lines[y][x];
-
-                    if (y == Y && _fields[x][y] == Field.OpenTile) {
-                        X = Math.Min(X, x);
+                        if (sy == y) {
+                            x = Math.Min(x, sx);
+                        }
                     }
                 }
             }
 
-            // init the rest of the fields (that are 0 right now)
-            for (var x = 0; x < _fields.Length; x++) {
-                for (var y = 0; y < _fields[x].Length; y++) {
-                    if (_fields[x][y] == 0) {
-                        _fields[x][y] = Field.BlankSpace;
+            // init connection between squares
+
+            foreach (var square in squares.Values) {
+                // these squares are directly next to each other
+                var key = CreateKey(square.quadrantX - 1, square.quadrantY);
+                if (squares.ContainsKey(key)) {
+                    square.Left = new SimpleTranslation(squares[key]);
+                    squares[key].Right = new SimpleTranslation(square);
+                }
+
+                key = CreateKey(square.quadrantX, square.quadrantY + 1);
+                if (squares.ContainsKey(key)) {
+                    square.Down = new SimpleTranslation(squares[key]);
+                    squares[key].Up = new SimpleTranslation(square);
+                }
+            }
+
+            if (cube) {
+                ConnectCubeSquares();
+            } else {
+                ConnectFlatSquares();
+            }
+        }
+
+        private void ConnectCubeSquares() {
+            if (squares.ContainsKey(CreateKey(3, 2))) {
+                ConnectExampleCubeSquares();
+            } else {
+                ConnectInputCubeSquares();
+            }
+        }
+
+        private void ConnectExampleCubeSquares() {
+            // ... ... 2-0 ...
+            // 0-1 1-1 2-1 ...
+            // ... ... 2-2 3-2
+            squares[CreateKey(1, 1)].Down = new DownToRightTranslation(squares[CreateKey(2, 2)]);
+
+            squares[CreateKey(2, 0)].Up = new UpToDownTranslation(squares[CreateKey(2, 2)]);
+
+            squares[CreateKey(2, 1)].Right = new RightToDownTranslation(squares[CreateKey(3, 2)]);
+
+            squares[CreateKey(2, 2)].Down = new DownToUpTranslation(squares[CreateKey(2, 0)]);
+            squares[CreateKey(2, 2)].Left = new LeftToUpTranslation(squares[CreateKey(2, 2)]);
+
+            squares[CreateKey(3, 2)].Up = new UpToLeftTranslation(squares[CreateKey(2, 1)]);
+        }
+
+        private void ConnectInputCubeSquares() {
+            // ... 1-0 2-0
+            // ... 1-1 ...
+            // 0-2 1-2 ...
+            // 0-3 ... ...
+        }
+
+        private void ConnectFlatSquares() {
+            foreach (var square in squares.Values) {
+                if (square.Right == null) {
+                    for (var qx = 0; qx <= square.quadrantX; qx++) {
+                        var key = CreateKey(qx, square.quadrantY);
+                        if (squares.ContainsKey(key)) {
+                            square.Right = new SimpleTranslation(squares[key]);
+                            squares[key].Left = new SimpleTranslation(square);
+                            break;
+                        }
+                    }
+                }
+
+                if (square.Down == null) {
+                    for (var qy = 0; qy <= square.quadrantY; qy++) {
+                        var key = CreateKey(square.quadrantX, qy);
+                        if (squares.ContainsKey(key)) {
+                            square.Down = new SimpleTranslation(squares[key]);
+                            squares[key].Up = new SimpleTranslation(square);
+                            break;
+                        }
                     }
                 }
             }
-            
-            _cubeSize = _fields.Length / 4;
+        }
+
+        private static string CreateKey(int x, int y) {
+            return x + "-" + y;
         }
 
         internal void MoveStepsForward(int steps) {
@@ -72,124 +150,47 @@ public class MonkeyMap {
         }
 
         private void MoveStepForward() {
-            if (_cube) {
-                MoveStepForwardOnCube();
-                return;
-            }
-
-            var newX = GetNextStepX(X);
-            var newY = GetNextStepY(Y);
+            var newX = GetNextStepX(x);
+            var newY = GetNextStepY(y);
             MoveToTile(newX, newY);
         }
 
-        private int GetNextStepX(int x) => (x + Facing.GetNextStepXPlus() + _fields.Length) % _fields.Length;
-        private int GetNextStepY(int y) => (y + Facing.GetNextStepYPlus() + _fields[0].Length) % _fields[0].Length;
+        private int GetNextStepX(int newX) => newX + facing.GetNextStepXPlus();
+        private int GetNextStepY(int newY) => newY + facing.GetNextStepYPlus();
 
         private void MoveToTile(int newX, int newY) {
-            var field = _fields[newX][newY];
+            var field = GetField(newX, newY);
             switch (field) {
                 case Field.OpenTile: {
-                    X = newX;
-                    Y = newY;
+                    x = newX;
+                    y = newY;
                     break;
                 }
                 case Field.SolidWall: {
                     break; // don't do nuthin
                 }
                 case Field.BlankSpace: {
-                    // wrap around
-                    do {
-                        newX = GetNextStepX(newX);
-                        newY = GetNextStepY(newY);
-                    } while (_fields[newX][newY] == Field.BlankSpace);
+                    // stepped from one square into an empty one
+                    var quadrantX = x / _squareSize;
+                    var quadrantY = y / _squareSize;
 
-                    MoveToTile(newX, newY);
+                    var (wrapX, wrapY, wrapFacing) = squares[CreateKey(quadrantX, quadrantY)].TranslateToNeighbor(newX, newY, facing);
+                    MoveToTile(wrapX, wrapY, wrapFacing);
                     break;
                 }
             }
         }
 
-        private void MoveStepForwardOnCube() {
-            var newX = X + Facing.GetNextStepXPlus();
-            var newY = Y + Facing.GetNextStepYPlus();
-
-            // If the cube looks like this
-            // ..#.  
-            // ###.
-            // ..##
-            // we need to know on which quadrant we land on to decide what to do
-            // possibilities: x = -1..4, y=-1..3 (30 possibilities, but some like -1|-1 and 4|3 are not possible)
-            // a cube has 12 edges, so 12 quadrants should be special, and 6 where we don't do anything
-
-            var quadrantX = newX / _cubeSize;
-            var quadrantY = newY / _cubeSize;
-
-            if ((quadrantX == 0 && quadrantY == 1) || (quadrantX == 1 && quadrantY == 1) || (quadrantX == 2 && quadrantY == 1) ||
-                (quadrantX == 2 && quadrantY == 0) || (quadrantX == 2 && quadrantY == 2) || (quadrantX == 3 && quadrantY == 2)) {
-                // these are the faces of the cube that are visible and readily moveable
-                MoveToTile(newX, newY);
-                return;
-            } 
-            if (quadrantX == 0 && quadrantY == 0) {
-                // the top left empty space
-                
-            } 
-            if (quadrantX == 1 && quadrantY == 0) {
-                // the middle top empty space - connects down to right
-                if (Facing == Facing.Up) {
-                    var wrapX = _cubeSize * 2;
-                    var wrapY = newX - _cubeSize;
-                    MoveToTile(wrapX, wrapY, Facing.Right);
-                    return;
-                } 
-                if (Facing == Facing.Left) {
-                    var wrapX = newY + _cubeSize;
-                    var wrapY = _cubeSize;
-                    MoveToTile(wrapX, wrapY, Facing.Down);
-                    return;
-                }
-            }
-            if (quadrantX == 3 && quadrantY == 1) {
-                // the middle right empty space - connects left to down
-                if (Facing == Facing.Right) {
-                    var wrapX = _cubeSize * 4 - 1 - (newY - _cubeSize);
-                    var wrapY = _cubeSize * 2;
-                    MoveToTile(wrapX, wrapY, Facing.Down);
-                    return;
-                } 
-                if (Facing == Facing.Up) {
-                    var wrapX = _cubeSize * 3 - 1;
-                    var wrapY = _cubeSize  + (_cubeSize * 4 - 1 - newX);
-                    MoveToTile(wrapX, wrapY, Facing.Left);
-                    return;
-                }
-            }
-            if (quadrantX == 2 && quadrantY == 3) {
-                // the space below the left bottom rectangle - connects up to the rectangle on the far left
-                if (Facing == Facing.Down) {
-                    var wrapX = _cubeSize - 1 - (newX - 2 * _cubeSize);
-                    var wrapY = _cubeSize * 2 - 1;
-                    MoveToTile(wrapX, wrapY, Facing.Up);
-                    return;
-                }
-            }
-            if (quadrantX == 0 && quadrantY == 2) {
-                // the space below the left most rectangle - connects up to the rectangle on the bottom left
-                if (Facing == Facing.Down) {
-                    var wrapX = 3 * _cubeSize - newX - 1;
-                    var wrapY = _cubeSize * 3 - 1;
-                    MoveToTile(wrapX, wrapY, Facing.Up);
-                    return;
-                }
-            }
-
-            throw new ArgumentException($"Quadrant {quadrantX}|{quadrantY} with facing {Facing} is not implemented");
+        private Field GetField(int newX, int newY) {
+            var quadrantX = newX < 0 ? -1 : newX / _squareSize;
+            var quadrantY = newY < 0 ? -1 : newY / _squareSize;
+            return GetSquareAt(quadrantX, quadrantY).GetRelativeField(newX - (quadrantX * _squareSize), newY - (quadrantY * _squareSize));
         }
 
         private void MoveToTile(int newX, int newY, Facing newFacing) {
             MoveToTile(newX, newY);
-            if (X == newX && Y == newY) {
-                Facing = newFacing;
+            if (x == newX && y == newY) {
+                facing = newFacing;
             }
         }
 
@@ -200,44 +201,254 @@ public class MonkeyMap {
         }
 
         internal void TurnLeft() {
-            Facing = Facing.GetLeftTurn();
+            facing = facing.GetLeftTurn();
         }
 
         public override string ToString() {
             var result = "";
-            for (var y = 0; y < _fields[0].Length; y++) {
-                for (var x = 0; x < _fields.Length; x++) {
-                    if (x == X && y == Y) {
-                        result += Facing.GetChar();
-                    } else {
-                        result += (char) _fields[x][y];
+            for (var sy = 0; sy < _mapHeight; sy += _squareSize) {
+                var array = new string[_squareSize];
+                for (var sx = 0; sx < _mapWidth; sx += _squareSize) {
+                    var quadrantX = sx / _squareSize;
+                    var quadrantY = sy / _squareSize;
+                    var other = GetSquareAt(quadrantX, quadrantY).Stringify(x - (quadrantX * _squareSize), y - (quadrantY * _squareSize), facing);
+                    for (var i = 0; i < array.Length; i++) {
+                        array[i] += other[i];
                     }
                 }
 
-                result += "\r\n";
+                for (var i = 0; i < array.Length; i++) {
+                    result += array[i];
+                    result += "\r\n";
+                }
             }
 
             return result;
         }
 
-        public int CalculatePassword() {
-            var row = Y + 1;
-            var col = X + 1;
-            return 1000 * row + 4 * col + (int) Facing;
+        private Square GetSquareAt(int quadrantX, int quadrantY) {
+            var key = CreateKey(quadrantX, quadrantY);
+            return squares.ContainsKey(key) ? squares[key] : _emptySquare;
         }
 
-        internal void ChangePosition(int newX, int newY, Facing facing) {
-            X = newX;
-            Y = newY;
-            Facing = facing;
+        public int CalculatePassword() {
+            var row = y + 1;
+            var col = x + 1;
+            return (1000 * row) + (4 * col) + (int)facing;
+        }
+
+        internal void ChangePosition(int newX, int newY, Facing newFacing) {
+            x = newX;
+            y = newY;
+            facing = newFacing;
         }
     }
 
-    internal readonly Map Fields;
+    public class Square {
+        internal readonly int quadrantX;
+        internal readonly int quadrantY;
+        internal readonly int size;
+        private readonly Field[][] _fields;
+
+        private Square(int quadrantX, int quadrantY, int size) {
+            this.quadrantX = quadrantX;
+            this.quadrantY = quadrantY;
+            this.size = size;
+
+            // init arrays
+            _fields = new Field[this.size][];
+            for (var x = 0; x < _fields.Length; x++) {
+                _fields[x] = new Field[this.size];
+            }
+        }
+
+        public Square(int quadrantX, int quadrantY, int size, Field field) : this(quadrantX, quadrantY, size) {
+            // init fields
+            for (var x = 0; x < _fields.Length; x++) {
+                for (var y = 0; y < _fields[0].Length; y++) {
+                    _fields[x][y] = field;
+                }
+            }
+        }
+
+        public Square(int quadrantX, int quadrantY, int size, string[] lines) : this(quadrantX, quadrantY, size) {
+            // set field values
+            for (var x = 0; x < _fields.Length; x++) {
+                for (var y = 0; y < _fields[x].Length; y++) {
+                    _fields[x][y] = (Field)lines[y + (quadrantY * size)][x + (quadrantX * size)];
+                }
+            }
+        }
+
+        internal ITranslation? Up { get; set; }
+        internal ITranslation? Down { get; set; }
+        internal ITranslation? Left { get; set; }
+        internal ITranslation? Right { get; set; }
+
+        internal Field GetRelativeField(int x, int y) {
+            return _fields[x][y];
+        }
+
+        public string[] Stringify(int playerX, int playerY, Facing playerFacing) {
+            var result = new string[_fields.Length];
+            for (var y = 0; y < _fields[0].Length; y++) {
+                result[y] = "";
+                for (var x = 0; x < _fields.Length; x++) {
+                    if (x == playerX && y == playerY) {
+                        result[y] += playerFacing.GetChar();
+                    } else {
+                        result[y] += (char)_fields[x][y];
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public override string ToString() => string.Join("\n", Stringify(-1, -1, Facing.Right));
+
+        internal (int, int, Facing) TranslateToNeighbor(int absoluteX, int absoluteY, Facing facing) {
+            var relativeX = absoluteX - (quadrantX * size);
+            var relativeY = absoluteY - (quadrantY * size);
+
+            if (relativeX < 0) {
+                Assert.NotNull(Left, $"Left neighbor of {quadrantX}|{quadrantY} not found!");
+                return Left!.Translate(relativeX, relativeY, facing);
+            }
+
+            if (relativeY < 0) {
+                Assert.NotNull(Up, $"Up neighbor of {quadrantX}|{quadrantY} not found!");
+                return Up!.Translate(relativeX, relativeY, facing);
+            }
+
+            if (relativeX >= size) {
+                Assert.NotNull(Right, $"Right neighbor of {quadrantX}|{quadrantY} not found!");
+                return Right!.Translate(relativeX, relativeY, facing);
+            }
+
+            if (relativeY >= size) {
+                Assert.NotNull(Down, $"Down neighbor of {quadrantX}|{quadrantY} not found!");
+                return Down!.Translate(relativeX, relativeY, facing);
+            }
+
+            throw new ArgumentException($"{absoluteX},{absoluteY} (relative {relativeX},{relativeY}) was not out of bounds.");
+        }
+    }
+
+    internal interface ITranslation {
+        (int, int, Facing) Translate(int relativeX, int relativeY, Facing facing);
+    }
+
+    private class SimpleTranslation : ITranslation {
+        private readonly Square _toSquare;
+        public SimpleTranslation(Square toSquare) => _toSquare = toSquare;
+
+        public (int, int, Facing) Translate(int relativeX, int relativeY, Facing facing) {
+            return (
+                (_toSquare.quadrantX * _toSquare.size) + ((relativeX + _toSquare.size) % _toSquare.size),
+                (_toSquare.quadrantY * _toSquare.size) + ((relativeY + _toSquare.size) % _toSquare.size),
+                facing
+            );
+        }
+
+        public override string ToString() => $"-> {_toSquare.quadrantX}-{_toSquare.quadrantY}";
+    }
+
+    private class RightToDownTranslation : ITranslation {
+        private readonly Square _toSquare;
+        public RightToDownTranslation(Square toSquare) => _toSquare = toSquare;
+
+        public (int, int, Facing) Translate(int relativeX, int relativeY, Facing facing) {
+            return (
+                (_toSquare.size * (_toSquare.quadrantX + 1)) - 1 - relativeY,
+                _toSquare.size * _toSquare.quadrantY,
+                Facing.Down
+            );
+        }
+
+        public override string ToString() => $"-> {_toSquare.quadrantX}-{_toSquare.quadrantY}";
+    }
+
+    private class UpToLeftTranslation : ITranslation {
+        private readonly Square _toSquare;
+        public UpToLeftTranslation(Square toSquare) => _toSquare = toSquare;
+
+        public (int, int, Facing) Translate(int relativeX, int relativeY, Facing facing) {
+            return (
+                (_toSquare.size * (_toSquare.quadrantX + 1)) - 1,
+                (_toSquare.size * _toSquare.quadrantY) - 1 + relativeX,
+                Facing.Left
+            );
+        }
+
+        public override string ToString() => $"-> {_toSquare.quadrantX}-{_toSquare.quadrantY}";
+    }
+
+    private class UpToDownTranslation : ITranslation {
+        private readonly Square _toSquare;
+        public UpToDownTranslation(Square toSquare) => _toSquare = toSquare;
+
+        public (int, int, Facing) Translate(int relativeX, int relativeY, Facing facing) {
+            return (
+                (_toSquare.size * _toSquare.quadrantX) + relativeX,
+                (_toSquare.size * (_toSquare.quadrantY + 1)) - 1,
+                Facing.Up
+            );
+        }
+
+        public override string ToString() => $"-> {_toSquare.quadrantX}-{_toSquare.quadrantY}";
+    }
+
+    private class DownToUpTranslation : ITranslation {
+        private readonly Square _toSquare;
+        public DownToUpTranslation(Square toSquare) => _toSquare = toSquare;
+
+        public (int, int, Facing) Translate(int relativeX, int relativeY, Facing facing) {
+            return (
+                (_toSquare.size * _toSquare.quadrantX) + relativeX,
+                _toSquare.size * _toSquare.quadrantY,
+                Facing.Up
+            );
+        }
+
+        public override string ToString() => $"-> {_toSquare.quadrantX}-{_toSquare.quadrantY}";
+    }
+
+    private class DownToRightTranslation : ITranslation {
+        private readonly Square _toSquare;
+        public DownToRightTranslation(Square toSquare) => _toSquare = toSquare;
+
+        public (int, int, Facing) Translate(int relativeX, int relativeY, Facing facing) {
+            return (
+                _toSquare.size * _toSquare.quadrantX,
+                (_toSquare.size * (_toSquare.quadrantY + 1)) - relativeX,
+                Facing.Right
+            );
+        }
+
+        public override string ToString() => $"-> {_toSquare.quadrantX}-{_toSquare.quadrantY}";
+    }
+
+    private class LeftToUpTranslation : ITranslation {
+        private readonly Square _toSquare;
+        public LeftToUpTranslation(Square toSquare) => _toSquare = toSquare;
+
+        public (int, int, Facing) Translate(int relativeX, int relativeY, Facing facing) {
+            return (
+                (_toSquare.size * (_toSquare.quadrantX + 1)) - 1 - relativeY,
+                (_toSquare.size * (_toSquare.quadrantY + 1)) - 1,
+                Facing.Down
+            );
+        }
+
+        public override string ToString() => $"-> {_toSquare.quadrantX}-{_toSquare.quadrantY}";
+    }
+
+    internal readonly Map fields;
     private readonly string _defaultMovements;
 
     public MonkeyMap(string[] lines, bool cube = false) {
-        Fields = new Map(lines, cube);
+        fields = new Map(lines, cube);
         _defaultMovements = lines[^1];
     }
 
@@ -252,7 +463,7 @@ public class MonkeyMap {
 
     private void MoveStepsForward(string movements) {
         var numberAsString = movements.Split('L', 'R')[0];
-        Fields.MoveStepsForward(int.Parse(numberAsString));
+        fields.MoveStepsForward(int.Parse(numberAsString));
 
         if (movements.Length > numberAsString.Length) {
             TurnAround(movements[numberAsString.Length..]);
@@ -261,9 +472,9 @@ public class MonkeyMap {
 
     private void TurnAround(string movements) {
         if (movements[0] == 'L') {
-            Fields.TurnLeft();
+            fields.TurnLeft();
         } else {
-            Fields.TurnRight();
+            fields.TurnRight();
         }
 
         if (movements.Length > 1) {
@@ -272,7 +483,7 @@ public class MonkeyMap {
     }
 
     public int CalculatePassword() {
-        return Fields.CalculatePassword();
+        return fields.CalculatePassword();
     }
 }
 
