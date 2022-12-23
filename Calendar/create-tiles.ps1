@@ -56,6 +56,9 @@ foreach ($codeSet in $calendarJson.CodeSets) {
     if ($language -eq "JavaScript") {
         $language = "JS"
     }
+    if ($language -eq "Mathematica") {
+        $language = "Math"
+    }
       
     # Read my Leaderboard
 

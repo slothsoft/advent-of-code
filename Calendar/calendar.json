@@ -38,6 +38,13 @@
       "Language": "C#",
       "Directory": "2019-20",
       "ShowCheckboxOnly": "true"
+    },
+    {
+      "Year": "2021",
+      "Day": "23",
+      "Language": "Mathematica",
+      "Directory": "2021/src/test/resources/d23",
+      "ShowCheckboxOnly": "true"
     }
   ]
 }
