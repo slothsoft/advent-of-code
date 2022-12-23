@@ -1,9 +1,9 @@
 package d24;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.ToLongBiFunction;
+import java.util.stream.Collectors;
 
 /**
  * <a href="https://adventofcode.com/2021/day/24">Day 24: Arithmetic Logic Unit</a>
@@ -11,31 +11,31 @@ import java.util.function.ToLongBiFunction;
 public final class ArithmeticLogicUnit {
 
     static class AluContext {
-        private final long[] variables = new long[4];
+        private final int[] variables = new int[4];
 
-        private final long[] inputs;
+        private final String input;
         private int inputIndex;
 
-        public AluContext(long[] inputs) {
-            this.inputs = inputs;
+        public AluContext(String input) {
+            this.input = input;
         }
 
-        public void setVariable(char variable, long value) {
+        public final void setVariable(char variable, int value) {
             variables[variable - 'w'] = value;
         }
 
-        public long getVariable(char variable) {
+        public final int getVariable(char variable) {
             return variables[variable - 'w'];
         }
 
-        public long getNextInput() {
-            return inputs[inputIndex++];
+        public final int getNextInput() {
+            return this.input.charAt(inputIndex++) - '0';
         }
 
-        public Map<Character, Long> createVariablesMap() {
+        public final Map<Character, Long> createVariablesMap() {
             Map<Character, Long> result = new HashMap<>();
             for (char i = 'w'; i <= 'z'; i++) {
-                result.put(i, getVariable(i));
+                result.put(i, Long.valueOf(getVariable(i)));
             }
             return result;
         }
@@ -53,29 +53,65 @@ public final class ArithmeticLogicUnit {
             this.variable = variable;
         }
 
-        public void execute(AluContext context) {
+        public final void execute(AluContext context) {
             context.setVariable(variable, context.getNextInput());
         }
+    }
+
+    private enum Operator {
+        ADD {
+            @Override
+            final int apply(int firstOperand, int secondOperand) {
+                return firstOperand + secondOperand;
+            }
+        },
+        MULTIPLY {
+            @Override
+            final int apply(int firstOperand, int secondOperand) {
+                return firstOperand * secondOperand;
+            }
+        },
+        DIVIDE {
+            @Override
+            final int apply(int firstOperand, int secondOperand) {
+                return firstOperand / secondOperand;
+            }
+        },
+        MODULO {
+            @Override
+            final int apply(int firstOperand, int secondOperand) {
+                return firstOperand % secondOperand;
+            }
+        },
+        EQUALS {
+            @Override
+            final int apply(int firstOperand, int secondOperand) {
+                return firstOperand == secondOperand ? 1 : 0;
+            }
+        },
+        ;
+
+        abstract int apply(int firstOperand, int secondOperand);
     }
 
     private static class OperatorCommand implements Command {
 
         private final char firstOperand;
         private final String secondOperand;
-        private final ToLongBiFunction<Long, Long> operator;
+        private final Operator operator;
 
-        public OperatorCommand(char firstOperand, String secondOperand, ToLongBiFunction<Long, Long> operator) {
+        public OperatorCommand(char firstOperand, String secondOperand, Operator operator) {
             this.firstOperand = firstOperand;
             this.secondOperand = secondOperand;
             this.operator = operator;
         }
 
         public void execute(AluContext context) {
-            long firstOperandValue = context.getVariable(firstOperand);
-            long secondOperandValue = Character.isAlphabetic(secondOperand.charAt(0))
+            int firstOperandValue = context.getVariable(firstOperand);
+            int secondOperandValue = Character.isAlphabetic(secondOperand.charAt(0))
                     ? context.getVariable(secondOperand.charAt(0))
-                    : Long.parseLong(secondOperand);
-            context.setVariable(firstOperand, operator.applyAsLong(firstOperandValue, secondOperandValue));
+                    : Integer.parseInt(secondOperand);
+            context.setVariable(firstOperand, operator.apply(firstOperandValue, secondOperandValue));
         }
     }
 
@@ -90,19 +126,19 @@ public final class ArithmeticLogicUnit {
                     commands[i] = new InputCommand(split[1].charAt(0));
                     break;
                 case "add":
-                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], Long::sum);
+                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], Operator.ADD);
                     break;
                 case "mul":
-                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], (a,b) -> a * b);
+                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], Operator.MULTIPLY);
                     break;
                 case "div":
-                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], (a,b) -> a / b);
+                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], Operator.DIVIDE);
                     break;
                 case "mod":
-                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], (a,b) -> a % b);
+                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], Operator.MODULO);
                     break;
                 case "eql":
-                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], (a,b) -> Objects.equals(a, b) ? 1L : 0L);
+                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], Operator.EQUALS);
                     break;
 
                 default:
@@ -111,8 +147,12 @@ public final class ArithmeticLogicUnit {
         }
     }
 
-    AluContext execute(long... params) {
-        AluContext context = new AluContext(params);
+    AluContext execute(int... params) {
+        return execute(Arrays.stream(params).mapToObj(p -> "" + p).collect(Collectors.joining()));
+    }
+
+    private AluContext execute(String input) {
+        AluContext context = new AluContext(input);
         for (Command command : commands) {
             command.execute(context);
         }
@@ -121,10 +161,10 @@ public final class ArithmeticLogicUnit {
 
     public long findGreatestSerialNumber() {
         for (long i = 99_999_999_999_999L; i >= 10_000_000_000_000L; i--) {
-            if (String.valueOf(i).contains("0")) {
+            String serialNumber = String.valueOf(i);
+            if (serialNumber.contains("0")) {
                 continue;
             }
-            long[] serialNumber = convertSerialNumberToArray(i);
             AluContext context = execute(serialNumber);
             if (context.getVariable('z') == 0L) {
                 return i;
@@ -132,15 +172,4 @@ public final class ArithmeticLogicUnit {
         }
         return -1L;
     }
-
-    static long[] convertSerialNumberToArray(long serialNumber) {
-        long[] result = new long[14];
-        for (int i = 0; i < result.length; i++) {
-            result[result.length - i - 1] = serialNumber % 10;
-            serialNumber /= 10;
-        }
-        return result;
-    }
-
-
 }

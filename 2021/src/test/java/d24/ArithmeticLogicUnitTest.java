@@ -15,11 +15,8 @@ public class ArithmeticLogicUnitTest {
     public void testExample1A() throws IOException {
         ArithmeticLogicUnit arithmeticLogicUnit = new ArithmeticLogicUnit(readInput("exampleA.txt"));
 
-        Map<Character, Long> result = arithmeticLogicUnit.execute(10).createVariablesMap();
-        Assert.assertEquals(Long.valueOf(-10L), result.get('x'));
-
-        result = arithmeticLogicUnit.execute(-7).createVariablesMap();
-        Assert.assertEquals(Long.valueOf(7L), result.get('x'));
+        Map<Character, Long> result = arithmeticLogicUnit.execute(9).createVariablesMap();
+        Assert.assertEquals(Long.valueOf(-9), result.get('x'));
     }
 
     private String[] readInput(String fileName) throws IOException {
@@ -50,8 +47,8 @@ public class ArithmeticLogicUnitTest {
         Assert.assertEquals(Long.valueOf(0), result.get('y'));
         Assert.assertEquals(Long.valueOf(0), result.get('z'));
 
-        result = arithmeticLogicUnit.execute(15).createVariablesMap(); // 11111
-        Assert.assertEquals(Long.valueOf(1), result.get('w'));
+        result = arithmeticLogicUnit.execute(7).createVariablesMap(); // 01111
+        Assert.assertEquals(Long.valueOf(0), result.get('w'));
         Assert.assertEquals(Long.valueOf(1), result.get('x'));
         Assert.assertEquals(Long.valueOf(1), result.get('y'));
         Assert.assertEquals(Long.valueOf(1), result.get('z'));
@@ -61,13 +58,6 @@ public class ArithmeticLogicUnitTest {
         Assert.assertEquals(Long.valueOf(0), result.get('x'));
         Assert.assertEquals(Long.valueOf(0), result.get('y'));
         Assert.assertEquals(Long.valueOf(0), result.get('z'));
-    }
-
-    @Test
-    public void testExampleSerialNumber() {
-        Assert.assertArrayEquals(new long[]{
-                1L, 3L, 5L, 7L, 9L, 2L, 4L, 6L, 8L, 9L, 9L, 9L, 9L, 9L
-        }, ArithmeticLogicUnit.convertSerialNumberToArray(13579246899999L));
     }
 
     @Test
