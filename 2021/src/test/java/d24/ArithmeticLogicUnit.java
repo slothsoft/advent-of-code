@@ -1,5 +1,6 @@
 package d24;
 
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +15,7 @@ public final class ArithmeticLogicUnit {
         private final int[] variables = new int[4];
 
         private final String input;
-        private int inputIndex;
+        int inputIndex;
 
         public AluContext(String input) {
             this.input = input;
@@ -43,6 +44,7 @@ public final class ArithmeticLogicUnit {
 
     private interface Command {
         void execute(AluContext context);
+        String stringify(AluContext context);
     }
 
     private static class InputCommand implements Command {
@@ -56,40 +58,51 @@ public final class ArithmeticLogicUnit {
         public final void execute(AluContext context) {
             context.setVariable(variable, context.getNextInput());
         }
+
+        @Override
+        public String stringify(AluContext context) {
+            return variable + " = input[" + context.inputIndex + "]; // is " + context.getNextInput() + " on default";
+        }
     }
 
     private enum Operator {
-        ADD {
+        ADD(" + {0}") {
             @Override
             final int apply(int firstOperand, int secondOperand) {
                 return firstOperand + secondOperand;
             }
         },
-        MULTIPLY {
+        MULTIPLY(" * {0}") {
             @Override
             final int apply(int firstOperand, int secondOperand) {
                 return firstOperand * secondOperand;
             }
         },
-        DIVIDE {
+        DIVIDE(" / {0}") {
             @Override
             final int apply(int firstOperand, int secondOperand) {
                 return firstOperand / secondOperand;
             }
         },
-        MODULO {
+        MODULO(" % {0}") {
             @Override
             final int apply(int firstOperand, int secondOperand) {
                 return firstOperand % secondOperand;
             }
         },
-        EQUALS {
+        EQUALS( " == {0} ? 1 : 0") {
             @Override
             final int apply(int firstOperand, int secondOperand) {
                 return firstOperand == secondOperand ? 1 : 0;
             }
         },
         ;
+
+        final String stringifyPattern;
+
+        Operator(String stringifyPattern) {
+            this.stringifyPattern = stringifyPattern;
+        }
 
         abstract int apply(int firstOperand, int secondOperand);
     }
@@ -112,6 +125,11 @@ public final class ArithmeticLogicUnit {
                     ? context.getVariable(secondOperand.charAt(0))
                     : Integer.parseInt(secondOperand);
             context.setVariable(firstOperand, operator.apply(firstOperandValue, secondOperandValue));
+        }
+
+        @Override
+        public String stringify(AluContext context) {
+            return firstOperand + " = " + firstOperand + MessageFormat.format(operator.stringifyPattern, secondOperand) + ";";
         }
     }
 
@@ -171,5 +189,14 @@ public final class ArithmeticLogicUnit {
             }
         }
         return -1L;
+    }
+
+    public String[] createCodeLines() {
+        String[] result = new String[commands.length];
+        AluContext context = new AluContext("13579246899999");
+        for (int i = 0; i < commands.length; i++) {
+            result[i] = commands[i].stringify(context);
+        }
+        return result;
     }
 }
