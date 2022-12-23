@@ -12,6 +12,6 @@ Some of the challenges where done in a [JavaScript simulation](https://slothsoft
 
 **ToDo:**
 
-- 2022/22 does not work for the example input (and is full of warnings)
+- \-
 
 <!-- CALENDAR-TILES -->

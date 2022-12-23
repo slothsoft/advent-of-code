@@ -137,21 +137,21 @@ public class MonkeyMap {
                 switch (quadrantY) {
                     case 1: {
                         // example - left outside to bottom right
-                        var wrapX = 4 * _squareSize - 1 - newY % _squareSize;
-                        var wrapY = 3 * _squareSize - 1;
+                        var wrapX = (4 * _squareSize) - 1 - (newY % _squareSize);
+                        var wrapY = (3 * _squareSize) - 1;
                         MoveToTile(wrapX, wrapY, Facing.Up);
                         return;
                     }
                     case 2: {
                         // input - left outside to top
                         var wrapX = _squareSize;
-                        var wrapY = _squareSize - 1 - newY % _squareSize;
+                        var wrapY = _squareSize - 1 - (newY % _squareSize);
                         MoveToTile(wrapX, wrapY, Facing.Right);
                         return;
                     }
                     case 3: {
                         // input - left outside to very top 
-                        var wrapX = _squareSize + newY % _squareSize;
+                        var wrapX = _squareSize + (newY % _squareSize);
                         var wrapY = 0;
                         MoveToTile(wrapX, wrapY, Facing.Down);
                         return;
@@ -166,14 +166,14 @@ public class MonkeyMap {
                     case 0: {
                         // input - top right to middle
                         var wrapX = newX - _squareSize - 1;
-                        var wrapY = 3 * _squareSize - newY % _squareSize - 1;
+                        var wrapY = (3 * _squareSize) - (newY % _squareSize) - 1;
                         MoveToTile(wrapX, wrapY, Facing.Left);
                         return;
                     }
                     case 2: {
                         // example - bottom left to top
                         var wrapX = newX - _squareSize - 1;
-                        var wrapY = _squareSize - newY % _squareSize - 1;
+                        var wrapY = _squareSize - (newY % _squareSize) - 1;
                         MoveToTile(wrapX, wrapY, Facing.Left);
                         return;
                     }
@@ -187,20 +187,20 @@ public class MonkeyMap {
                     case 1: {
                         // top left to left / bottomest bottom left
                         var wrapX = 0;
-                        var wrapY = 3 * _squareSize + newX % _squareSize;
+                        var wrapY = (3 * _squareSize) + (newX % _squareSize);
                         MoveToTile(wrapX, wrapY, Facing.Right);
                         return;
                     }
                     case 2: {
                         if (_squareSize == 4) {
                             // top to left
-                            var wrapX = _squareSize - newX % _squareSize - 1;
+                            var wrapX = _squareSize - (newX % _squareSize) - 1;
                             var wrapY = _squareSize;
                             MoveToTile(wrapX, wrapY, Facing.Down);
                         } else {
                             // top to  bottomest bottom
                             var wrapX = newX % _squareSize;
-                            var wrapY = 4 * (_squareSize) - 1;
+                            var wrapY = (4 * _squareSize) - 1;
                             MoveToTile(wrapX, wrapY, Facing.Up);
                         }
                         return;
@@ -213,9 +213,23 @@ public class MonkeyMap {
             if (newY >= _mapHeight) {
                 if (quadrantX == 0 && quadrantY == 4) {
                     // bottomest bottom to top right
-                    var wrapX = 2 * _squareSize + newX % _squareSize;
-                    var wrapY = 0;
+                    var wrapX = (2 * _squareSize) + (newX % _squareSize);
+                    const int wrapY = 0;
                     MoveToTile(wrapX, wrapY, Facing.Down);
+                    return;
+                }
+                if (quadrantX == 2 && quadrantY == 3) {
+                    // middle bottom to left
+                    var wrapX = _squareSize - (newX % _squareSize) - 1;
+                    var wrapY = newY - _squareSize - 1;
+                    MoveToTile(wrapX, wrapY, Facing.Up);
+                    return;
+                }
+                if (quadrantX == 3 && quadrantY == 3) {
+                    // bottom right to middle left
+                    var wrapX = 0;
+                    var wrapY = (2 * _squareSize) - (newX % _squareSize) - 1;
+                    MoveToTile(wrapX, wrapY, Facing.Right);
                     return;
                 }
                 throw new ArgumentException($"Quadrant {quadrantX}|{quadrantY} with facing {facing} is not implemented");
@@ -223,64 +237,64 @@ public class MonkeyMap {
 
             if (facing == Facing.Left && newY + _squareSize < _mapHeight && _fields[newX][newY + _squareSize] != Field.BlankSpace) {
                 // right -> bottom
-                var wrapX = (newX / _squareSize) * _squareSize + newY % _squareSize;
-                var wrapY = (newY / _squareSize + 1) * (_squareSize);
+                var wrapX = (newX / _squareSize * _squareSize) + (newY % _squareSize);
+                var wrapY = ((newY / _squareSize) + 1) * _squareSize;
                 MoveToTile(wrapX, wrapY, Facing.Down);
                 return;
             }
 
             if (facing == Facing.Left && newY - _squareSize >= 0 && _fields[newX][newY - _squareSize] != Field.BlankSpace) {
                 // right -> up
-                var wrapX = (newX / _squareSize + 1) * (_squareSize) - newY % _squareSize - 1;
-                var wrapY = (newY / _squareSize) * (_squareSize) - 1;
+                var wrapX = (((newX / _squareSize) + 1) * _squareSize) - (newY % _squareSize) - 1;
+                var wrapY = (newY / _squareSize * _squareSize) - 1;
                 MoveToTile(wrapX, wrapY, Facing.Up);
                 return;
             }
 
             if (facing == Facing.Right && newY + _squareSize < _mapHeight && _fields[newX][newY + _squareSize] != Field.BlankSpace) {
                 // right -> bottom
-                var wrapX = (newX / _squareSize + 1) * (_squareSize) - newY % _squareSize - 1;
-                var wrapY = (newY / _squareSize + 1) * (_squareSize);
+                var wrapX = (((newX / _squareSize) + 1) * _squareSize) - (newY % _squareSize) - 1;
+                var wrapY = ((newY / _squareSize) + 1) * _squareSize;
                 MoveToTile(wrapX, wrapY, Facing.Down);
                 return;
             }
 
             if (facing == Facing.Right && newY - _squareSize >= 0 && _fields[newX][newY - _squareSize] != Field.BlankSpace) {
                 // right -> up
-                var wrapX = (newX / _squareSize) * _squareSize + newY % _squareSize;
-                var wrapY = (newY / _squareSize) * (_squareSize) - 1;
+                var wrapX = (newX / _squareSize * _squareSize) + (newY % _squareSize);
+                var wrapY = (newY / _squareSize * _squareSize) - 1;
                 MoveToTile(wrapX, wrapY, Facing.Up);
                 return;
             }
 
             if (facing == Facing.Down && newX + _squareSize < _mapWidth && _fields[newX + _squareSize][newY] != Field.BlankSpace) {
                 // down -> right
-                var wrapX = (newX / _squareSize + 1) * (_squareSize);
-                var wrapY = (newY / _squareSize) * (_squareSize) + newX % _squareSize - 1;
+                var wrapX = ((newX / _squareSize) + 1) * _squareSize;
+                var wrapY = (newY / _squareSize * _squareSize) + (newX % _squareSize) - 1;
                 MoveToTile(wrapX, wrapY, Facing.Right);
                 return;
             }
 
             if (facing == Facing.Down && newX - _squareSize >= 0 && _fields[newX - _squareSize][newY] != Field.BlankSpace) {
                 // down -> left
-                var wrapX = (newX / _squareSize) * (_squareSize) - 1;
-                var wrapY = (newY / _squareSize) * (_squareSize) + newX % _squareSize;
+                var wrapX = (newX / _squareSize * _squareSize) - 1;
+                var wrapY = (newY / _squareSize * _squareSize) + (newX % _squareSize);
                 MoveToTile(wrapX, wrapY, Facing.Left);
                 return;
             }
 
             if (facing == Facing.Up && newX + _squareSize < _mapWidth && _fields[newX + _squareSize][newY] != Field.BlankSpace) {
                 // up -> right
-                var wrapX = (newX / _squareSize + 1) * (_squareSize);
-                var wrapY = (newY / _squareSize) * (_squareSize) + newX % _squareSize;
+                var wrapX = ((newX / _squareSize) + 1) * _squareSize;
+                var wrapY = (newY / _squareSize * _squareSize) + (newX % _squareSize);
                 MoveToTile(wrapX, wrapY, Facing.Right);
                 return;
             }
 
             if (facing == Facing.Up && newX - _squareSize >= 0 && _fields[newX - _squareSize][newY] != Field.BlankSpace) {
                 // up -> left
-                var wrapX = (newX / _squareSize) * (_squareSize) - 1;
-                var wrapY = (newY / _squareSize + 1) * (_squareSize) - newX % _squareSize - 1;
+                var wrapX = (newX / _squareSize * _squareSize) - 1;
+                var wrapY = (((newY / _squareSize) + 1) * _squareSize) - (newX % _squareSize) - 1;
                 MoveToTile(wrapX, wrapY, Facing.Left);
                 return;
             }
@@ -290,23 +304,38 @@ public class MonkeyMap {
                 var wrapX = _squareSize == 4
                     ? newX + _squareSize - 1
                     : newX - _squareSize - 1;
-                var wrapY = 3 * (_squareSize) - newY % _squareSize - 1;
+                var wrapY = (3 * _squareSize) - (newY % _squareSize) - 1;
                 MoveToTile(wrapX, wrapY, Facing.Left);
                 return;
             }
             
             if (quadrantX == 0 && quadrantY == 0) {
-                // top left to middle left
-                var wrapX = 0;
-                var wrapY = 3 * (_squareSize) - newY % _squareSize - 1;
-                MoveToTile(wrapX, wrapY, Facing.Right);
+                if (_squareSize == 4) {
+                    // top left to top
+                    var wrapX = (3 * _squareSize) - (newX % _squareSize) - 1;
+                    var wrapY = 0;
+                    MoveToTile(wrapX, wrapY, Facing.Down);
+                } else {
+                    // top left to middle left
+                    var wrapX = 0;
+                    var wrapY = (3 * _squareSize) - (newY % _squareSize) - 1;
+                    MoveToTile(wrapX, wrapY, Facing.Right);
+                }
+                return;
+            }
+            
+            if (quadrantX == 0 && quadrantY == 2) {
+                // left to middle bottom
+                var wrapX = (3 * _squareSize) - (newX % _squareSize) - 1;
+                var wrapY = _squareSize + newY - 1;
+                MoveToTile(wrapX, wrapY, Facing.Up);
                 return;
             }
             
             if (quadrantX == 2 && quadrantY == 2) {
                 // middle to top left's left
-                var wrapX = 3 * _squareSize - 1;
-                var wrapY = _squareSize - newY % _squareSize - 1;
+                var wrapX = (3 * _squareSize) - 1;
+                var wrapY = _squareSize - (newY % _squareSize) - 1;
                 MoveToTile(wrapX, wrapY, Facing.Left);
                 return;
             }
