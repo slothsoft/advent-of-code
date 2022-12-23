@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AoC._23.WithTuples;
+namespace AoC._23.WithRecords;
 
 /// <summary>
 /// <a href="https://adventofcode.com/2022/day/23">Day 23: Unstable Diffusion</a>
@@ -16,14 +16,16 @@ public class UnstableDiffusion {
         East,
     }
 
-    private readonly HashSet<(int x, int y)> _elves = new();
+    private record Elf(int X, int Y);
+
+    private readonly HashSet<Elf> _elves = new();
     private readonly IList<Direction> _directionsToCheck;
 
     public UnstableDiffusion(string[] lines) {
         for (var y = 0; y < lines.Length; y++) {
             for (var x = 0; x < lines[y].Length; x++) {
                 if (lines[y][x] == '#') {
-                    _elves.Add((x, y));
+                    _elves.Add(new(x, y));
                 }
             }
         }
@@ -47,8 +49,8 @@ public class UnstableDiffusion {
 
     internal int ExecuteRound() {
         // find a valid direction per elf
-        var proposedDirections = new Dictionary<(int x, int y), (int x, int y)>();
-        var elvesThatMustNotMove = new HashSet<(int x, int y)>();
+        var proposedDirections = new Dictionary<Elf, Elf>();
+        var elvesThatMustNotMove = new HashSet<Elf>();
         foreach (var elf in _elves) {
             if (TryFindMoveForElf(elf, out var proposedMove)) {
                 // if 2 elves want to move to the same spot, don't move either
@@ -85,9 +87,9 @@ public class UnstableDiffusion {
         return elvesThatMovedCount;
     }
 
-    private bool TryFindMoveForElf((int x, int y) elf, out (int x, int y) proposedMove) {
+    private bool TryFindMoveForElf(Elf elf, out Elf proposedMove) {
         // lol
-        proposedMove = default;
+        proposedMove = elf;
 
         if (IsDirectionValid(elf, Direction.North) && IsDirectionValid(elf, Direction.South) &&
             IsDirectionValid(elf, Direction.East) && IsDirectionValid(elf, Direction.West)) {
@@ -97,7 +99,7 @@ public class UnstableDiffusion {
 
         foreach (var direction in _directionsToCheck) {
             if (IsDirectionValid(elf, direction)) {
-                proposedMove = (elf.x + direction.GetXPlus(), elf.y + direction.GetYPlus());
+                proposedMove = new(elf.X + direction.GetXPlus(), elf.Y + direction.GetYPlus());
                 return true;
             }
         }
@@ -105,10 +107,10 @@ public class UnstableDiffusion {
         return false;
     }
 
-    private bool IsDirectionValid((int x, int y) location, Direction direction) {
+    private bool IsDirectionValid(Elf location, Direction direction) {
         foreach (var x in direction.GetCheckX()) {
             foreach (var y in direction.GetCheckY()) {
-                if (IsElfAtPosition(location.x + x, location.y + y)) {
+                if (IsElfAtPosition(location.X + x, location.Y + y)) {
                     return false;
                 }
             }
@@ -118,14 +120,14 @@ public class UnstableDiffusion {
     }
 
     private bool IsElfAtPosition(int x, int y) {
-        return _elves.Contains((x, y));
+        return _elves.Contains(new(x, y));
     }
 
     public override string ToString() {
-        var minX = _elves.Min(l => l.x);
-        var maxX = _elves.Max(l => l.x);
-        var minY = _elves.Min(l => l.y);
-        var maxY = _elves.Max(l => l.y);
+        var minX = _elves.Min(l => l.X);
+        var maxX = _elves.Max(l => l.X);
+        var minY = _elves.Min(l => l.Y);
+        var maxY = _elves.Max(l => l.Y);
 
         var result = "";
         for (var y = minY; y <= maxY; y++) {
