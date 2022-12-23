@@ -10,7 +10,9 @@ Some of the challenges where done in a [JavaScript simulation](https://slothsoft
 - 2022/07 FileSystem
 - 2022/16 Permutation
 
+**ToDo:**
 
+- 2022/22 does not work for the example input (and is full of warnings)
 
 
 # 2022

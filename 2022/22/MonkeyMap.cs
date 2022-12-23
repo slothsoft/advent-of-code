@@ -7,7 +7,7 @@ namespace AoC._22;
 /// <a href="https://adventofcode.com/2022/day/22">Day 22: Monkey Map</a>
 /// </summary>
 public class MonkeyMap {
-    public enum Field {
+    private enum Field {
         BlankSpace = ' ',
         OpenTile = '.',
         SolidWall = '#',
@@ -23,46 +23,48 @@ public class MonkeyMap {
 
     public class Map {
         private readonly Field[][] _fields;
-        private readonly int _cubeSize;
+        private readonly int _squareSize;
         private readonly bool _cube;
 
-        internal int X = int.MaxValue;
-        internal int Y;
-        internal Facing Facing = Facing.Right;
+        internal int x = int.MaxValue;
+        internal int y;
+        internal Facing facing = Facing.Right;
+
+        private readonly int _mapWidth;
+        private readonly int _mapHeight;
 
         public Map(string[] lines, bool cube) {
             _cube = cube;
 
-            var maxY = lines.Length - 2;
-            var maxX = lines.Take(lines.Length - 2).Max(l => l.Length);
+            _mapHeight = lines.Length - 2;
+            _mapWidth = lines.Take(_mapHeight).Max(l => l.Length);
+            _squareSize = _mapHeight % 3 == 0 ? _mapHeight / 3 : _mapHeight / 4;
 
             // init arrays
-            _fields = new Field[maxX][];
-            for (var x = 0; x < _fields.Length; x++) {
-                _fields[x] = new Field[maxY];
+            _fields = new Field[_mapWidth][];
+            for (var ix = 0; ix < _fields.Length; ix++) {
+                _fields[ix] = new Field[_mapHeight];
             }
 
             // set field values
-            for (var y = 0; y < lines.Length - 2; y++) {
-                for (var x = 0; x < lines[y].Length; x++) {
-                    _fields[x][y] = (Field) lines[y][x];
+            for (var iy = 0; iy < lines.Length - 2; iy++) {
+                for (var ix = 0; ix < lines[iy].Length; ix++) {
+                    _fields[ix][iy] = (Field)lines[iy][ix];
 
-                    if (y == Y && _fields[x][y] == Field.OpenTile) {
-                        X = Math.Min(X, x);
+                    if (iy == y && _fields[ix][iy] == Field.OpenTile) {
+                        x = Math.Min(x, ix);
                     }
                 }
             }
 
             // init the rest of the fields (that are 0 right now)
-            for (var x = 0; x < _fields.Length; x++) {
-                for (var y = 0; y < _fields[x].Length; y++) {
-                    if (_fields[x][y] == 0) {
-                        _fields[x][y] = Field.BlankSpace;
+            for (var ix = 0; ix < _fields.Length; ix++) {
+                for (var iy = 0; iy < _fields[ix].Length; iy++) {
+                    if (_fields[ix][iy] == 0) {
+                        _fields[ix][iy] = Field.BlankSpace;
                     }
                 }
             }
-            
-            _cubeSize = _fields.Length / 4;
         }
 
         internal void MoveStepsForward(int steps) {
@@ -77,20 +79,20 @@ public class MonkeyMap {
                 return;
             }
 
-            var newX = GetNextStepX(X);
-            var newY = GetNextStepY(Y);
+            var newX = GetNextStepX(x);
+            var newY = GetNextStepY(y);
             MoveToTile(newX, newY);
         }
 
-        private int GetNextStepX(int x) => (x + Facing.GetNextStepXPlus() + _fields.Length) % _fields.Length;
-        private int GetNextStepY(int y) => (y + Facing.GetNextStepYPlus() + _fields[0].Length) % _fields[0].Length;
+        private int GetNextStepX(int originX) => (originX + facing.GetNextStepXPlus() + _fields.Length) % _fields.Length;
+        private int GetNextStepY(int originY) => (originY + facing.GetNextStepYPlus() + _fields[0].Length) % _fields[0].Length;
 
         private void MoveToTile(int newX, int newY) {
             var field = _fields[newX][newY];
             switch (field) {
                 case Field.OpenTile: {
-                    X = newX;
-                    Y = newY;
+                    x = newX;
+                    y = newY;
                     break;
                 }
                 case Field.SolidWall: {
@@ -110,86 +112,212 @@ public class MonkeyMap {
         }
 
         private void MoveStepForwardOnCube() {
-            var newX = X + Facing.GetNextStepXPlus();
-            var newY = Y + Facing.GetNextStepYPlus();
+            var newX = x + facing.GetNextStepXPlus();
+            var newY = y + facing.GetNextStepYPlus();
 
             // If the cube looks like this
-            // ..#.  
-            // ###.
-            // ..##
+            // ..#.       .##
+            // ###.       .#
+            // ..##       ##
+            //            #
             // we need to know on which quadrant we land on to decide what to do
             // possibilities: x = -1..4, y=-1..3 (30 possibilities, but some like -1|-1 and 4|3 are not possible)
             // a cube has 12 edges, so 12 quadrants should be special, and 6 where we don't do anything
 
-            var quadrantX = newX / _cubeSize;
-            var quadrantY = newY / _cubeSize;
+            var quadrantX = newX < 0 ? -1 : newX / _squareSize;
+            var quadrantY = newY < 0 ? -1 : newY / _squareSize;
 
-            if ((quadrantX == 0 && quadrantY == 1) || (quadrantX == 1 && quadrantY == 1) || (quadrantX == 2 && quadrantY == 1) ||
-                (quadrantX == 2 && quadrantY == 0) || (quadrantX == 2 && quadrantY == 2) || (quadrantX == 3 && quadrantY == 2)) {
+            if (newX >= 0 && newX < _mapWidth && newY >= 0 && newY < _mapHeight && _fields[newX][newY] != Field.BlankSpace) {
                 // these are the faces of the cube that are visible and readily moveable
                 MoveToTile(newX, newY);
                 return;
-            } 
-            if (quadrantX == 0 && quadrantY == 0) {
-                // the top left empty space
-                
-            } 
-            if (quadrantX == 1 && quadrantY == 0) {
-                // the middle top empty space - connects down to right
-                if (Facing == Facing.Up) {
-                    var wrapX = _cubeSize * 2;
-                    var wrapY = newX - _cubeSize;
-                    MoveToTile(wrapX, wrapY, Facing.Right);
-                    return;
-                } 
-                if (Facing == Facing.Left) {
-                    var wrapX = newY + _cubeSize;
-                    var wrapY = _cubeSize;
-                    MoveToTile(wrapX, wrapY, Facing.Down);
-                    return;
-                }
-            }
-            if (quadrantX == 3 && quadrantY == 1) {
-                // the middle right empty space - connects left to down
-                if (Facing == Facing.Right) {
-                    var wrapX = _cubeSize * 4 - 1 - (newY - _cubeSize);
-                    var wrapY = _cubeSize * 2;
-                    MoveToTile(wrapX, wrapY, Facing.Down);
-                    return;
-                } 
-                if (Facing == Facing.Up) {
-                    var wrapX = _cubeSize * 3 - 1;
-                    var wrapY = _cubeSize  + (_cubeSize * 4 - 1 - newX);
-                    MoveToTile(wrapX, wrapY, Facing.Left);
-                    return;
-                }
-            }
-            if (quadrantX == 2 && quadrantY == 3) {
-                // the space below the left bottom rectangle - connects up to the rectangle on the far left
-                if (Facing == Facing.Down) {
-                    var wrapX = _cubeSize - 1 - (newX - 2 * _cubeSize);
-                    var wrapY = _cubeSize * 2 - 1;
-                    MoveToTile(wrapX, wrapY, Facing.Up);
-                    return;
-                }
-            }
-            if (quadrantX == 0 && quadrantY == 2) {
-                // the space below the left most rectangle - connects up to the rectangle on the bottom left
-                if (Facing == Facing.Down) {
-                    var wrapX = 3 * _cubeSize - newX - 1;
-                    var wrapY = _cubeSize * 3 - 1;
-                    MoveToTile(wrapX, wrapY, Facing.Up);
-                    return;
-                }
             }
 
-            throw new ArgumentException($"Quadrant {quadrantX}|{quadrantY} with facing {Facing} is not implemented");
+            if (newX < 0) {
+                switch (quadrantY) {
+                    case 1: {
+                        // example - left outside to bottom right
+                        var wrapX = 4 * _squareSize - 1 - newY % _squareSize;
+                        var wrapY = 3 * _squareSize - 1;
+                        MoveToTile(wrapX, wrapY, Facing.Up);
+                        return;
+                    }
+                    case 2: {
+                        // input - left outside to top
+                        var wrapX = _squareSize;
+                        var wrapY = _squareSize - 1 - newY % _squareSize;
+                        MoveToTile(wrapX, wrapY, Facing.Right);
+                        return;
+                    }
+                    case 3: {
+                        // input - left outside to very top 
+                        var wrapX = _squareSize + newY % _squareSize;
+                        var wrapY = 0;
+                        MoveToTile(wrapX, wrapY, Facing.Down);
+                        return;
+                    }
+                }
+
+                throw new ArgumentException($"Quadrant {quadrantX}|{quadrantY} with facing {facing} is not implemented");
+            }
+
+            if (newX >= _mapWidth) {
+                switch (quadrantY) {
+                    case 0: {
+                        // input - top right to middle
+                        var wrapX = newX - _squareSize - 1;
+                        var wrapY = 3 * _squareSize - newY % _squareSize - 1;
+                        MoveToTile(wrapX, wrapY, Facing.Left);
+                        return;
+                    }
+                    case 2: {
+                        // example - bottom left to top
+                        var wrapX = newX - _squareSize - 1;
+                        var wrapY = _squareSize - newY % _squareSize - 1;
+                        MoveToTile(wrapX, wrapY, Facing.Left);
+                        return;
+                    }
+                }
+
+                throw new ArgumentException($"Quadrant {quadrantX}|{quadrantY} with facing {facing} is not implemented");
+            }
+
+            if (newY < 0) {
+                switch (quadrantX) {
+                    case 1: {
+                        // top left to left / bottomest bottom left
+                        var wrapX = 0;
+                        var wrapY = 3 * _squareSize + newX % _squareSize;
+                        MoveToTile(wrapX, wrapY, Facing.Right);
+                        return;
+                    }
+                    case 2: {
+                        if (_squareSize == 4) {
+                            // top to left
+                            var wrapX = _squareSize - newX % _squareSize - 1;
+                            var wrapY = _squareSize;
+                            MoveToTile(wrapX, wrapY, Facing.Down);
+                        } else {
+                            // top to  bottomest bottom
+                            var wrapX = newX % _squareSize;
+                            var wrapY = 4 * (_squareSize) - 1;
+                            MoveToTile(wrapX, wrapY, Facing.Up);
+                        }
+                        return;
+                    }
+                }
+
+                throw new ArgumentException($"Quadrant {quadrantX}|{quadrantY} with facing {facing} is not implemented");
+            }
+
+            if (newY >= _mapHeight) {
+                if (quadrantX == 0 && quadrantY == 4) {
+                    // bottomest bottom to top right
+                    var wrapX = 2 * _squareSize + newX % _squareSize;
+                    var wrapY = 0;
+                    MoveToTile(wrapX, wrapY, Facing.Down);
+                    return;
+                }
+                throw new ArgumentException($"Quadrant {quadrantX}|{quadrantY} with facing {facing} is not implemented");
+            }
+
+            if (facing == Facing.Left && newY + _squareSize < _mapHeight && _fields[newX][newY + _squareSize] != Field.BlankSpace) {
+                // right -> bottom
+                var wrapX = (newX / _squareSize) * _squareSize + newY % _squareSize;
+                var wrapY = (newY / _squareSize + 1) * (_squareSize);
+                MoveToTile(wrapX, wrapY, Facing.Down);
+                return;
+            }
+
+            if (facing == Facing.Left && newY - _squareSize >= 0 && _fields[newX][newY - _squareSize] != Field.BlankSpace) {
+                // right -> up
+                var wrapX = (newX / _squareSize + 1) * (_squareSize) - newY % _squareSize - 1;
+                var wrapY = (newY / _squareSize) * (_squareSize) - 1;
+                MoveToTile(wrapX, wrapY, Facing.Up);
+                return;
+            }
+
+            if (facing == Facing.Right && newY + _squareSize < _mapHeight && _fields[newX][newY + _squareSize] != Field.BlankSpace) {
+                // right -> bottom
+                var wrapX = (newX / _squareSize + 1) * (_squareSize) - newY % _squareSize - 1;
+                var wrapY = (newY / _squareSize + 1) * (_squareSize);
+                MoveToTile(wrapX, wrapY, Facing.Down);
+                return;
+            }
+
+            if (facing == Facing.Right && newY - _squareSize >= 0 && _fields[newX][newY - _squareSize] != Field.BlankSpace) {
+                // right -> up
+                var wrapX = (newX / _squareSize) * _squareSize + newY % _squareSize;
+                var wrapY = (newY / _squareSize) * (_squareSize) - 1;
+                MoveToTile(wrapX, wrapY, Facing.Up);
+                return;
+            }
+
+            if (facing == Facing.Down && newX + _squareSize < _mapWidth && _fields[newX + _squareSize][newY] != Field.BlankSpace) {
+                // down -> right
+                var wrapX = (newX / _squareSize + 1) * (_squareSize);
+                var wrapY = (newY / _squareSize) * (_squareSize) + newX % _squareSize - 1;
+                MoveToTile(wrapX, wrapY, Facing.Right);
+                return;
+            }
+
+            if (facing == Facing.Down && newX - _squareSize >= 0 && _fields[newX - _squareSize][newY] != Field.BlankSpace) {
+                // down -> left
+                var wrapX = (newX / _squareSize) * (_squareSize) - 1;
+                var wrapY = (newY / _squareSize) * (_squareSize) + newX % _squareSize;
+                MoveToTile(wrapX, wrapY, Facing.Left);
+                return;
+            }
+
+            if (facing == Facing.Up && newX + _squareSize < _mapWidth && _fields[newX + _squareSize][newY] != Field.BlankSpace) {
+                // up -> right
+                var wrapX = (newX / _squareSize + 1) * (_squareSize);
+                var wrapY = (newY / _squareSize) * (_squareSize) + newX % _squareSize;
+                MoveToTile(wrapX, wrapY, Facing.Right);
+                return;
+            }
+
+            if (facing == Facing.Up && newX - _squareSize >= 0 && _fields[newX - _squareSize][newY] != Field.BlankSpace) {
+                // up -> left
+                var wrapX = (newX / _squareSize) * (_squareSize) - 1;
+                var wrapY = (newY / _squareSize + 1) * (_squareSize) - newX % _squareSize - 1;
+                MoveToTile(wrapX, wrapY, Facing.Left);
+                return;
+            }
+
+            if (quadrantX == 3 && quadrantY == 0) {
+                // top to bottom right
+                var wrapX = _squareSize == 4
+                    ? newX + _squareSize - 1
+                    : newX - _squareSize - 1;
+                var wrapY = 3 * (_squareSize) - newY % _squareSize - 1;
+                MoveToTile(wrapX, wrapY, Facing.Left);
+                return;
+            }
+            
+            if (quadrantX == 0 && quadrantY == 0) {
+                // top left to middle left
+                var wrapX = 0;
+                var wrapY = 3 * (_squareSize) - newY % _squareSize - 1;
+                MoveToTile(wrapX, wrapY, Facing.Right);
+                return;
+            }
+            
+            if (quadrantX == 2 && quadrantY == 2) {
+                // middle to top left's left
+                var wrapX = 3 * _squareSize - 1;
+                var wrapY = _squareSize - newY % _squareSize - 1;
+                MoveToTile(wrapX, wrapY, Facing.Left);
+                return;
+            }
+
+            throw new ArgumentException($"Quadrant {quadrantX}|{quadrantY} with facing {facing} is not implemented");
         }
 
         private void MoveToTile(int newX, int newY, Facing newFacing) {
             MoveToTile(newX, newY);
-            if (X == newX && Y == newY) {
-                Facing = newFacing;
+            if (x == newX && y == newY) {
+                facing = newFacing;
             }
         }
 
@@ -200,17 +328,17 @@ public class MonkeyMap {
         }
 
         internal void TurnLeft() {
-            Facing = Facing.GetLeftTurn();
+            facing = facing.GetLeftTurn();
         }
 
         public override string ToString() {
             var result = "";
-            for (var y = 0; y < _fields[0].Length; y++) {
-                for (var x = 0; x < _fields.Length; x++) {
-                    if (x == X && y == Y) {
-                        result += Facing.GetChar();
+            for (var iy = 0; iy < _fields[0].Length; iy++) {
+                for (var ix = 0; ix < _fields.Length; ix++) {
+                    if (ix == x && iy == y) {
+                        result += facing.GetChar();
                     } else {
-                        result += (char) _fields[x][y];
+                        result += (char)_fields[ix][iy];
                     }
                 }
 
@@ -221,23 +349,23 @@ public class MonkeyMap {
         }
 
         public int CalculatePassword() {
-            var row = Y + 1;
-            var col = X + 1;
-            return 1000 * row + 4 * col + (int) Facing;
+            var row = y + 1;
+            var col = x + 1;
+            return (1000 * row) + (4 * col) + (int)facing;
         }
 
-        internal void ChangePosition(int newX, int newY, Facing facing) {
-            X = newX;
-            Y = newY;
-            Facing = facing;
+        internal void ChangePosition(int newX, int newY, Facing newFacing) {
+            x = newX;
+            y = newY;
+            facing = newFacing;
         }
     }
 
-    internal readonly Map Fields;
+    internal readonly Map fields;
     private readonly string _defaultMovements;
 
     public MonkeyMap(string[] lines, bool cube = false) {
-        Fields = new Map(lines, cube);
+        fields = new Map(lines, cube);
         _defaultMovements = lines[^1];
     }
 
@@ -252,7 +380,7 @@ public class MonkeyMap {
 
     private void MoveStepsForward(string movements) {
         var numberAsString = movements.Split('L', 'R')[0];
-        Fields.MoveStepsForward(int.Parse(numberAsString));
+        fields.MoveStepsForward(int.Parse(numberAsString));
 
         if (movements.Length > numberAsString.Length) {
             TurnAround(movements[numberAsString.Length..]);
@@ -261,9 +389,9 @@ public class MonkeyMap {
 
     private void TurnAround(string movements) {
         if (movements[0] == 'L') {
-            Fields.TurnLeft();
+            fields.TurnLeft();
         } else {
-            Fields.TurnRight();
+            fields.TurnRight();
         }
 
         if (movements.Length > 1) {
@@ -272,7 +400,7 @@ public class MonkeyMap {
     }
 
     public int CalculatePassword() {
-        return Fields.CalculatePassword();
+        return fields.CalculatePassword();
     }
 }
 
