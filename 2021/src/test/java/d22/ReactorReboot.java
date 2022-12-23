@@ -1,5 +1,7 @@
 package d22;
 
+import org.junit.Assert;
+
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -83,7 +85,7 @@ public final class ReactorReboot {
 
     private final String[] inputLines;
 
-    public ReactorReboot(String...inputLines) {
+    public ReactorReboot(String... inputLines) {
         this.inputLines = inputLines;
     }
 
@@ -96,7 +98,7 @@ public final class ReactorReboot {
         int maxY = 0;
         int maxZ = 0;
 
-        for (String line: inputLines) {
+        for (String line : inputLines) {
             // on x=-20..26,y=-36..17,z=-47..7
             String[] split = line.split("(on x=|off x=|\\.\\.|,y=|,z=)");
 
@@ -118,7 +120,7 @@ public final class ReactorReboot {
 
     private Cube reboot(int minX, int maxX, int minY, int maxY, int minZ, int maxZ) {
         Cube result = new Cube(minX, maxX, minY, maxY, minZ, maxZ);
-        for (String line: inputLines) {
+        for (String line : inputLines) {
             // on x=-20..26,y=-36..17,z=-47..7
             String[] split = line.split("(on x=|off x=|\\.\\.|,y=|,z=)");
             result.setValues(
@@ -132,27 +134,15 @@ public final class ReactorReboot {
 
     public long countRebootCubes(int minValue, int maxValue) {
         Box result = new Box(minValue, maxValue, false);
-        for (String line: inputLines) {
+        for (String line : inputLines) {
             // on x=-20..26,y=-36..17,z=-47..7
             String[] split = line.split("(on x=|off x=|\\.\\.|,y=|,z=)");
 
-            int[] minCoordinates = new int[] {Integer.parseInt(split[1]), Integer.parseInt(split[3]), Integer.parseInt(split[5])};
-            int[] maxCoordinates = new int[] {Integer.parseInt(split[2]), Integer.parseInt(split[4]), Integer.parseInt(split[6])};
+            int[] minCoordinates = new int[]{Integer.parseInt(split[1]), Integer.parseInt(split[3]), Integer.parseInt(split[5])};
+            int[] maxCoordinates = new int[]{Integer.parseInt(split[2]), Integer.parseInt(split[4]), Integer.parseInt(split[6])};
             Box possibleChild = new Box(minCoordinates, maxCoordinates, line.charAt(1) == 'n');
 
-            result.traverse(box -> {
-
-                // if the boxes do not intersect we can ignore it (the box WILL intersect the result box anyway)
-                if (!box.intersects(possibleChild))
-                    return;
-
-                // if the box has the same value, we do not need to check this box
-                if (box.value == possibleChild.value)
-                    return;
-
-                Box intersection = box.createIntersection(possibleChild);
-                box.children.add(intersection);
-            });
+            result.traverse(box -> box.createIntersectionChildren(possibleChild));
         }
         return result.countWithValue(true);
     }
@@ -166,7 +156,7 @@ public final class ReactorReboot {
         public List<Box> children = new ArrayList<>();
 
         public Box(int minCoordinate, int maxCoordinate, boolean value) {
-            this(new int[] {minCoordinate, minCoordinate, minCoordinate}, new int[] {maxCoordinate, maxCoordinate, maxCoordinate}, value);
+            this(new int[]{minCoordinate, minCoordinate, minCoordinate}, new int[]{maxCoordinate, maxCoordinate, maxCoordinate}, value);
         }
 
         public Box(int[] minCoordinates, int[] maxCoordinates, boolean value) {
@@ -184,7 +174,7 @@ public final class ReactorReboot {
         }
 
         public void traverse(Consumer<Box> consumer) {
-            Box[] childrenArray = children.toArray(new Box[children.size()]);
+            Box[] childrenArray = children.toArray(new Box[0]);
             consumer.accept(this);
             for (Box child : childrenArray) {
                 child.traverse(consumer);
@@ -200,10 +190,56 @@ public final class ReactorReboot {
 
         private long calculateChildrenWithValue(boolean value) {
             long result = 0;
-            for (Box child : children) {
+            Box[] childrenArray = children.toArray(new Box[0]);
+
+            for (Box child : childrenArray) {
                 result += child.countWithValue(value);
             }
+
+            // FIXME: this works so far, but the current problem is that two intersecting children have their intersection
+            // counted twice. So for the A example, the 8 cubes between the first and second child are counted double
+            for (int i = 0; i < childrenArray.length; i++) {
+                Box child1 = childrenArray[i];
+
+                for (int j = i + 1; j < childrenArray.length; j++) {
+                    Box child2 = childrenArray[j];
+
+                    // the problem only persists for children with the same value
+                    if (child1.value != child2.value) continue;
+
+                    // and if they don't intersect, we don't have a problem
+                    if (!child1.intersects(child2)) continue;
+
+                    // so now we have an intersection, but this intersection might again be changed by the
+                    // parents' children (they have the same children for the intersection part)
+                    Box intersection = child1.createIntersection(child2, child2.value);
+                    intersection.createIntersectionChildren(child2.children);
+                    long intersectionValue = intersection.countWithValue(child2.value);
+                    Assert.assertTrue("Intersection value should not be bigger than result " + intersectionValue +" < " + result, intersectionValue <= result);
+                    result -= intersectionValue;
+                }
+            }
+
             return result;
+        }
+
+        public void createIntersectionChildren(List<Box> possibleChildren) {
+            for (Box possibleChild : possibleChildren) {
+                createIntersectionChildren(possibleChild);
+            }
+        }
+
+        public void createIntersectionChildren(Box possibleChild) {
+            // if the boxes do not intersect we can ignore it (the box WILL intersect the result box anyway)
+            if (!intersects(possibleChild))
+                return;
+
+            // if the box has the same value, we do not need to check this box
+            if (value == possibleChild.value)
+                return;
+
+            Box intersection = createIntersection(possibleChild, possibleChild.value);
+            children.add(intersection);
         }
 
         public boolean intersects(Box other) {
@@ -218,7 +254,7 @@ public final class ReactorReboot {
             return true;
         }
 
-        public Box createIntersection(Box other) {
+        public Box createIntersection(Box other, boolean newValue) {
             int[] newMinCoordinates = new int[3];
             int[] newMaxCoordinates = new int[3];
 
@@ -226,7 +262,7 @@ public final class ReactorReboot {
                 newMinCoordinates[i] = Math.max(other.minCoordinates[i], this.minCoordinates[i]);
                 newMaxCoordinates[i] = Math.min(other.maxCoordinates[i], this.maxCoordinates[i]);
             }
-            return new Box(newMinCoordinates, newMaxCoordinates, other.value);
+            return new Box(newMinCoordinates, newMaxCoordinates, newValue);
         }
     }
 }
