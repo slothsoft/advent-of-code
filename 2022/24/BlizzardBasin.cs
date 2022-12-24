@@ -17,13 +17,18 @@ public class BlizzardBasin {
 
         public int Minute { get; private set; }
         private readonly int[][] _tiles;
-        private int[][]? _temp;
+        private readonly int[][] _temp;
 
         public BasinMap(string[] lines) {
             // init arrays
             _tiles = new int[lines[0].Length][];
             for (var x = 0; x < _tiles.Length; x++) {
                 _tiles[x] = new int[lines.Length];
+            }
+
+            _temp = new int[_tiles.Length][];
+            for (var x = 0; x < _temp.Length; x++) {
+                _temp[x] = new int[_tiles[0].Length];
             }
 
             // now parse the map
@@ -45,9 +50,7 @@ public class BlizzardBasin {
         }
 
         public void ExecuteNextMinute() {
-            _temp ??= new int[_tiles.Length][];
             for (var x = 0; x < _tiles.Length; x++) {
-                _temp[x] ??= new int[_tiles[x].Length];
                 for (var y = 0; y < _tiles[x].Length; y++) {
                     _temp[x][y] = _tiles[x][y] == (int)Tile.Wall ? (int)Tile.Wall : 0;
                 }
@@ -137,17 +140,17 @@ public class BlizzardBasin {
                     return (x, 0);
                 }
             }
-            
+
             throw new ArgumentException("Could not find start point for: \n" + ToString());
         }
-        
+
         public (int, int) FindEndPoint() {
             for (var x = 0; x < _tiles.Length; x++) {
                 if (_tiles[x][_tiles[x].Length - 1] == (int)Tile.Empty) {
                     return (x, _tiles[x].Length - 1);
                 }
             }
-            
+
             throw new ArgumentException("Could not find end point for: \n" + ToString());
         }
     }
@@ -174,30 +177,30 @@ public class BlizzardBasin {
         return SolveQuickestPath(start, end);
     }
 
-    private int SolveQuickestPath((int, int) start, (int, int) end) {
-        IList<(int, int)> currentPoints = new List<(int, int)> {
-            start
-        };
+    internal int SolveQuickestPath((int, int) start, (int, int) end) {
+        IList<(int, int)> currentPoints = new List<(int, int)> {start};
         do {
             currentPoints = SolveNextMinute(currentPoints);
         } while (!currentPoints.Contains(end));
+
         return map.Minute;
     }
 
     private IList<(int, int)> SolveNextMinute(IEnumerable<(int, int)> currentPoints) {
         map.ExecuteNextMinute();
-        return currentPoints.SelectMany((point, _) => map.FindAccessiblePoints(point.Item1, point.Item2)).Distinct().ToList();
+        return currentPoints.SelectMany((point, _) => map.FindAccessiblePoints(point.Item1, point.Item2)).Distinct()
+            .ToList();
     }
 
     public int CalculateQuickestPathBackAndForth() {
         var start = map.FindStartPoint();
         var end = map.FindEndPoint();
 
-        var result1 = SolveQuickestPath(start, end);
-        var result2 =  SolveQuickestPath(end, start);
-        var result3 = SolveQuickestPath(start, end);
+        SolveQuickestPath(start, end);
+        SolveQuickestPath(end, start);
+        SolveQuickestPath(start, end);
 
-        return result1 + result2 + result3;
+        return map.Minute;
     }
 }
 
