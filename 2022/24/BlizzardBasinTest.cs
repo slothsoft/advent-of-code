@@ -99,15 +99,23 @@ public class BlizzardBasinTest {
         var blizzardBasin = new BlizzardBasin(File.ReadAllLines(@"24\input.txt"));
 
         var result = blizzardBasin.CalculateQuickestPath();
-        // Assert.AreEqual(3864, result);
+        Assert.AreEqual(314, result);
         Assert.Pass("Puzzle 1: " + result);
     }
 
     [Test]
     public void Example2() {
+        var blizzardBasin = new BlizzardBasin(File.ReadAllLines(@"24\exampleB.txt"));
+
+        Assert.AreEqual(54, blizzardBasin.CalculateQuickestPathBackAndForth());
     }
 
     [Test]
     public void Puzzle2() {
+        var blizzardBasin = new BlizzardBasin(File.ReadAllLines(@"24\input.txt"));
+
+        var result = blizzardBasin.CalculateQuickestPathBackAndForth();
+        //Assert.AreEqual(314, result);
+        Assert.Pass("Puzzle 1: " + result);
     }
 }
