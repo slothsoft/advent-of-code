@@ -1,9 +1,8 @@
 package d24;
 
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.ToLongBiFunction;
 
 /**
  * <a href="https://adventofcode.com/2021/day/24">Day 24: Arithmetic Logic Unit</a>
@@ -43,6 +42,7 @@ public final class ArithmeticLogicUnit {
 
     private interface Command {
         void execute(AluContext context);
+        String stringify(AluContext context);
     }
 
     private static class InputCommand implements Command {
@@ -56,15 +56,62 @@ public final class ArithmeticLogicUnit {
         public void execute(AluContext context) {
             context.setVariable(variable, context.getNextInput());
         }
+
+        @Override
+        public String stringify(AluContext context) {
+            return variable + " = input[" + context.inputIndex + "]; // is " + context.getNextInput() + " on default";
+        }
+    }
+
+    private enum Operator {
+        ADD(" + {0}") {
+            @Override
+            final long apply(long firstOperand, long secondOperand) {
+                return firstOperand + secondOperand;
+            }
+        },
+        MULTIPLY(" * {0}") {
+            @Override
+            final long apply(long firstOperand, long secondOperand) {
+                return firstOperand * secondOperand;
+            }
+        },
+        DIVIDE(" / {0}") {
+            @Override
+            final long apply(long firstOperand, long secondOperand) {
+                return firstOperand / secondOperand;
+            }
+        },
+        MODULO(" % {0}") {
+            @Override
+            final long apply(long firstOperand, long secondOperand) {
+                return firstOperand % secondOperand;
+            }
+        },
+        EQUALS( " == {0} ? 1 : 0") {
+            @Override
+            final long apply(long firstOperand, long secondOperand) {
+                return firstOperand == secondOperand ? 1 : 0;
+            }
+        },
+        ;
+
+        final String stringifyPattern;
+
+        Operator(String stringifyPattern) {
+            this.stringifyPattern = stringifyPattern;
+        }
+
+        abstract long apply(long firstOperand, long secondOperand);
     }
 
     private static class OperatorCommand implements Command {
 
         private final char firstOperand;
         private final String secondOperand;
-        private final ToLongBiFunction<Long, Long> operator;
+        private final Operator operator;
 
-        public OperatorCommand(char firstOperand, String secondOperand, ToLongBiFunction<Long, Long> operator) {
+        public OperatorCommand(char firstOperand, String secondOperand, Operator operator) {
             this.firstOperand = firstOperand;
             this.secondOperand = secondOperand;
             this.operator = operator;
@@ -75,7 +122,12 @@ public final class ArithmeticLogicUnit {
             long secondOperandValue = Character.isAlphabetic(secondOperand.charAt(0))
                     ? context.getVariable(secondOperand.charAt(0))
                     : Long.parseLong(secondOperand);
-            context.setVariable(firstOperand, operator.applyAsLong(firstOperandValue, secondOperandValue));
+            context.setVariable(firstOperand, operator.apply(firstOperandValue, secondOperandValue));
+        }
+
+        @Override
+        public String stringify(AluContext context) {
+            return firstOperand + " = " + firstOperand + MessageFormat.format(operator.stringifyPattern, secondOperand) + ";";
         }
     }
 
@@ -90,19 +142,19 @@ public final class ArithmeticLogicUnit {
                     commands[i] = new InputCommand(split[1].charAt(0));
                     break;
                 case "add":
-                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], Long::sum);
+                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], Operator.ADD);
                     break;
                 case "mul":
-                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], (a,b) -> a * b);
+                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], Operator.MULTIPLY);
                     break;
                 case "div":
-                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], (a,b) -> a / b);
+                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], Operator.DIVIDE);
                     break;
                 case "mod":
-                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], (a,b) -> a % b);
+                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], Operator.MODULO);
                     break;
                 case "eql":
-                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], (a,b) -> Objects.equals(a, b) ? 1L : 0L);
+                    commands[i] = new OperatorCommand(split[1].charAt(0), split[2], Operator.EQUALS);
                     break;
 
                 default:
@@ -142,5 +194,12 @@ public final class ArithmeticLogicUnit {
         return result;
     }
 
-
+    public String[] createCodeLines() {
+        String[] result = new String[commands.length];
+        AluContext context = new AluContext(convertSerialNumberToArray(13579246899999L));
+        for (int i = 0; i < commands.length; i++) {
+            result[i] = commands[i].stringify(context);
+        }
+        return result;
+    }
 }

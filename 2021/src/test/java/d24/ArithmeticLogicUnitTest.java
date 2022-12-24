@@ -78,4 +78,13 @@ public class ArithmeticLogicUnitTest {
         System.out.println("Puzzle 1: " + result);
         Assert.assertEquals(946529356520531L, result);
     }
+
+    @Test
+    public void testPuzzle1WriteAsString() throws IOException {
+        ArithmeticLogicUnit arithmeticLogicUnit = new ArithmeticLogicUnit(readInput("input.txt"));
+
+        for (String line : arithmeticLogicUnit.createCodeLines()) {
+            System.out.println(line);
+        }
+    }
 }
