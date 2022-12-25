@@ -4,12 +4,9 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
-
 /**
  * <a href="https://adventofcode.com/2021/day/24">Day 24: Arithmetic Logic Unit</a>
  */
@@ -22,7 +19,7 @@ public final class ArithmeticLogicUnit {
         private final int[] serialNumber;
         private int inputIndex;
 
-        public AluContext(int...serialNumber) {
+        public AluContext(int... serialNumber) {
             this.serialNumber = serialNumber;
         }
 
@@ -162,6 +159,8 @@ public final class ArithmeticLogicUnit {
         }
     }
 
+    private static final int DIGIT_COUNT = 14;
+
     final List<Command> commands;
 
     public ArithmeticLogicUnit(String... inputLines) {
@@ -194,11 +193,11 @@ public final class ArithmeticLogicUnit {
         }
     }
 
-    public ArithmeticLogicUnit(Command...commands) {
+    public ArithmeticLogicUnit(Command... commands) {
         this.commands = new ArrayList<>(Arrays.asList(commands));
     }
 
-    AluContext execute(int...input) {
+    AluContext execute(int... input) {
         AluContext context = new AluContext(input);
         for (Command command : commands) {
             command.execute(context);
@@ -206,25 +205,11 @@ public final class ArithmeticLogicUnit {
         return context;
     }
 
-    public long findGreatestSerialNumber() {
-        // see the calculations on paper (math.png)
-        // there are 7 numbers that increase the resulting z, and 7 that decrease it
-
-
-        Set<Long> uniqueResult = new HashSet<>();
-        String serialNumberSuffix = "99999999999999";
-
-        for (var i = 0; i < 14; i++) {
-        }
-        return -1L;
-    }
-
-
     public String findMyGreatestSerialNumber() {
         // see the calculations on paper (math.png)
         // there are 7 numbers that increase the resulting z, and 7 that decrease it
 
-        int[] serialNumber = new int[14];
+        int[] serialNumber = new int[DIGIT_COUNT];
         for (serialNumber[0] = 9; serialNumber[0] >= 8; serialNumber[0]--) {
             serialNumber[13] = serialNumber[0] - 7;
 
@@ -260,8 +245,49 @@ public final class ArithmeticLogicUnit {
         return null;
     }
 
+    public String findMySmallestSerialNumber() {
+        // see the calculations on paper (math.png)
+        // there are 7 numbers that increase the resulting z, and 7 that decrease it
+
+        int[] serialNumber = new int[DIGIT_COUNT];
+        for (serialNumber[0] = 8; serialNumber[0] <= 9; serialNumber[0]++) {
+            serialNumber[13] = serialNumber[0] - 7;
+
+            for (serialNumber[1] = 1; serialNumber[1] <= 2; serialNumber[1]++) {
+                serialNumber[12] = serialNumber[1] + 7;
+
+                for (serialNumber[2] = 5; serialNumber[2] <= 9; serialNumber[2]++) {
+                    serialNumber[5] = serialNumber[2] - 4;
+
+                    for (serialNumber[3] = 1; serialNumber[3] <= 6; serialNumber[3]++) {
+                        serialNumber[4] = serialNumber[3] + 3;
+
+                        for (serialNumber[6] = 7; serialNumber[6] <= 9; serialNumber[6]++) {
+                            serialNumber[7] = serialNumber[6] - 6;
+
+                            for (serialNumber[8] = 1; serialNumber[8] <= 4; serialNumber[8]++) {
+                                serialNumber[9] = serialNumber[8] + 5;
+
+                                for (serialNumber[10] = 1; serialNumber[10] <= 7; serialNumber[10]++) {
+                                    serialNumber[11] = serialNumber[10] + 2;
+
+                                    AluContext context = execute(serialNumber);
+                                    if (context.getVariable('z') == 0) {
+                                        return Arrays.stream(serialNumber).mapToObj(String::valueOf).collect(Collectors.joining());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+
     static int[] convertSerialNumberToArray(long serialNumber) {
-        int[] result = new int[14];
+        int[] result = new int[DIGIT_COUNT];
         for (int i = 0; i < result.length; i++) {
             result[result.length - i - 1] = (int) (serialNumber % 10);
             serialNumber /= 10;

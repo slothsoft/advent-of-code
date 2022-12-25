@@ -67,8 +67,17 @@ public class ArithmeticLogicUnitTest {
         }, ArithmeticLogicUnit.convertSerialNumberToArray(13579246899999L));
     }
 
+//    @Test
+//    public void testPuzzle1() throws IOException {
+//        ArithmeticLogicUnit arithmeticLogicUnit = new ArithmeticLogicUnit(readInput("input.txt"));
+//
+//        String result = arithmeticLogicUnit.findGreatestSerialNumber();
+//        System.out.println("Puzzle 1: " + result);
+//        Assert.assertEquals("92969593497992", result);
+//    }
+
     @Test
-    public void testPuzzle1() throws IOException {
+    public void testPuzzle1Hardcoded() throws IOException {
         ArithmeticLogicUnit arithmeticLogicUnit = new ArithmeticLogicUnit(readInput("input.txt"));
 
         String result = arithmeticLogicUnit.findMyGreatestSerialNumber();
@@ -84,4 +93,14 @@ public class ArithmeticLogicUnitTest {
             System.out.println(line);
         }
     }
+
+    @Test
+    public void testPuzzle2Hardcoded() throws IOException {
+        ArithmeticLogicUnit arithmeticLogicUnit = new ArithmeticLogicUnit(readInput("input.txt"));
+
+        String result = arithmeticLogicUnit.findMySmallestSerialNumber();
+        System.out.println("Puzzle 2: " + result);
+        Assert.assertEquals("92969593497992", result);
+    }
+
 }
