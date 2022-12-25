@@ -9,7 +9,7 @@ public class AluCodeTest {
         int[] result = new int[14];
         int log = 1000000000;
         AluCode aluCode = new AluCode();
-        for (long i = 99_790_000_000_000L /* 99_999_999_999_999L */; i >= 10_000_000_000_000L; i--) {
+        for (long i = 99_999_999_999_999L; i >= 10_000_000_000_000L; i--) {
             if (String.valueOf(i).contains("0")) {
                 continue;
             }
@@ -24,6 +24,7 @@ public class AluCodeTest {
             if (i % log == log - 1) {
                 System.out.println("Tested until " + (i + 1) + " - " + z);
             }
+            break;
         }
     }
 
@@ -33,4 +34,6 @@ public class AluCodeTest {
             serialNumber /= 10;
         }
     }
+
+
 }

@@ -15,11 +15,8 @@ public class ArithmeticLogicUnitTest {
     public void testExample1A() throws IOException {
         ArithmeticLogicUnit arithmeticLogicUnit = new ArithmeticLogicUnit(readInput("exampleA.txt"));
 
-        Map<Character, Long> result = arithmeticLogicUnit.execute(10).createVariablesMap();
-        Assert.assertEquals(Long.valueOf(-10L), result.get('x'));
-
-        result = arithmeticLogicUnit.execute(-7).createVariablesMap();
-        Assert.assertEquals(Long.valueOf(7L), result.get('x'));
+        Map<Character, Long> result = arithmeticLogicUnit.execute(9).createVariablesMap();
+        Assert.assertEquals(Long.valueOf(-9L), result.get('x'));
     }
 
     private String[] readInput(String fileName) throws IOException {
@@ -50,8 +47,8 @@ public class ArithmeticLogicUnitTest {
         Assert.assertEquals(Long.valueOf(0), result.get('y'));
         Assert.assertEquals(Long.valueOf(0), result.get('z'));
 
-        result = arithmeticLogicUnit.execute(15).createVariablesMap(); // 11111
-        Assert.assertEquals(Long.valueOf(1), result.get('w'));
+        result = arithmeticLogicUnit.execute(7).createVariablesMap(); // 0111
+        Assert.assertEquals(Long.valueOf(0), result.get('w'));
         Assert.assertEquals(Long.valueOf(1), result.get('x'));
         Assert.assertEquals(Long.valueOf(1), result.get('y'));
         Assert.assertEquals(Long.valueOf(1), result.get('z'));
@@ -65,8 +62,8 @@ public class ArithmeticLogicUnitTest {
 
     @Test
     public void testExampleSerialNumber() {
-        Assert.assertArrayEquals(new long[]{
-                1L, 3L, 5L, 7L, 9L, 2L, 4L, 6L, 8L, 9L, 9L, 9L, 9L, 9L
+        Assert.assertArrayEquals(new int[]{
+                1, 3, 5, 7, 9, 2, 4, 6, 8, 9, 9, 9, 9, 9
         }, ArithmeticLogicUnit.convertSerialNumberToArray(13579246899999L));
     }
 
@@ -74,9 +71,9 @@ public class ArithmeticLogicUnitTest {
     public void testPuzzle1() throws IOException {
         ArithmeticLogicUnit arithmeticLogicUnit = new ArithmeticLogicUnit(readInput("input.txt"));
 
-        long result = arithmeticLogicUnit.findGreatestSerialNumber();
+        String result = arithmeticLogicUnit.findMyGreatestSerialNumber();
         System.out.println("Puzzle 1: " + result);
-        Assert.assertEquals(946529356520531L, result);
+        Assert.assertEquals("92969593497992", result);
     }
 
     @Test
