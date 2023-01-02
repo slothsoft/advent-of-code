@@ -153,7 +153,7 @@ foreach ($codeSet in $calendarJson.CodeSets) {
 # Create the Markdown for the Readme
 # ----------------------------------------
 
-$readmeReplacement = ""
+$readmeReplacement = "<!-- STEFFI, DO NOT ADD STUFF HERE! USE README-raw.md!!! -->`n`n"
 foreach ($year in $calendarData.GetEnumerator() | Sort Name -Descending)
 {
     $readmeReplacement = $readmeReplacement + "`n`n# " + $year.Name + "`n`n"

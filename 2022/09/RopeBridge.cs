@@ -10,14 +10,19 @@ namespace AoC._09;
 /// </summary>
 public class RopeBridge {
 
-    public Point HeadPosition { get; private set; } = new();
-    public Point TailPosition { get; private set; } = new();
-    public int VisitedTailPositionsCount => _visitedTailPositions.Count;
+    public Point HeadPosition { get; } = new();
+    public Point TailPosition => _tails[^1].Position;
+    public int VisitedTailPositionsCount => _tails[^1].VisitedTailPositionsCount;
+    
+    private readonly List<Tail> _tails = new();
 
-    private HashSet<Point> _visitedTailPositions = new();
-
-    public RopeBridge() {
-        _visitedTailPositions.Add(new Point(TailPosition.X, TailPosition.Y));
+    public RopeBridge(int tailCount = 1) {
+        var previousElement = HeadPosition;
+        for (var i = 0; i < tailCount; i++) {
+            var newElement = new Tail(previousElement);
+            _tails.Add(newElement);
+            previousElement = newElement.Position;
+        }
     }
     
     public void MoveRight(int steps) {
@@ -29,36 +34,14 @@ public class RopeBridge {
     public void MoveRight() {
         HeadPosition.X++;
         AdjustTail();
-        _visitedTailPositions.Add(new Point(TailPosition.X, TailPosition.Y));
     }
 
     private void AdjustTail() {
-        if (Math.Abs(HeadPosition.X - TailPosition.X) <= 1 && Math.Abs(HeadPosition.Y - TailPosition.Y) <= 1) {
-            // head and tail are still close enough
-            return;
-        }
-        if (HeadPosition.X == TailPosition.X && HeadPosition.Y != TailPosition.Y) {
-            // head and tail above each other
-            TailPosition.Y += (HeadPosition.Y - TailPosition.Y) / 2;
-            return;
-        }
-        if (HeadPosition.Y == TailPosition.Y && HeadPosition.X != TailPosition.X) {
-            // head and tail right next to each other
-            TailPosition.X += (HeadPosition.X - TailPosition.X) / 2;
-            return;
-        }
-        // head and tail are in "knight position"
-        if (Math.Abs(HeadPosition.X - TailPosition.X) <= 1) {
-            TailPosition.X = HeadPosition.X;
-        } else {
-            TailPosition.X = (int) Math.Round((HeadPosition.X + TailPosition.X) / 2.0);
-        }
-        if (Math.Abs(HeadPosition.Y - TailPosition.Y) <= 1) {
-            TailPosition.Y = HeadPosition.Y;
-        } else {
-            TailPosition.Y = (int) Math.Round((HeadPosition.Y + TailPosition.Y) / 2.0);
+        foreach (var tail in _tails) {
+            tail.AdjustTail();
         }
     }
+
 
     public void MoveUp(int steps) {
         for (var i = 0; i < steps; i++) {
@@ -69,7 +52,6 @@ public class RopeBridge {
     public void MoveUp() {
         HeadPosition.Y--;
         AdjustTail();
-        _visitedTailPositions.Add(new Point(TailPosition.X, TailPosition.Y));
     }
 
     public void MoveLeft(int steps) {
@@ -81,7 +63,6 @@ public class RopeBridge {
     public void MoveLeft() {
         HeadPosition.X--;
         AdjustTail();
-        _visitedTailPositions.Add(new Point(TailPosition.X, TailPosition.Y));
     }
     
     public void MoveDown(int steps) {
@@ -93,7 +74,6 @@ public class RopeBridge {
     public void MoveDown() {
         HeadPosition.Y++;
         AdjustTail();
-        _visitedTailPositions.Add(new Point(TailPosition.X, TailPosition.Y));
     }
 
     public void ExecuteCommands(string[] lines) {
@@ -112,6 +92,53 @@ public class RopeBridge {
                 case 'L':
                     MoveLeft(int.Parse(lineSplit[1]));
                     break;
+            }
+        }
+    }
+
+    private class Tail {
+        
+        internal Point HeadPosition { get; }
+        internal Point Position { get; }
+        internal int VisitedTailPositionsCount => _visitedTailPositions.Count;
+        
+        private readonly HashSet<Point> _visitedTailPositions = new();
+
+        public Tail(Point headPosition) {
+            HeadPosition = headPosition;
+            Position = new Point(headPosition.X, headPosition.Y);
+        }
+
+        internal void AdjustTail() {
+            DoAdjustTail();
+            _visitedTailPositions.Add(new Point(Position.X, Position.Y));
+        }
+
+        private void DoAdjustTail() {
+            if (Math.Abs(HeadPosition.X - Position.X) <= 1 && Math.Abs(HeadPosition.Y - Position.Y) <= 1) {
+                // head and tail are still close enough
+                return;
+            }
+            if (HeadPosition.X == Position.X && HeadPosition.Y != Position.Y) {
+                // head and tail above each other
+                Position.Y += (HeadPosition.Y - Position.Y) / 2;
+                return;
+            }
+            if (HeadPosition.Y == Position.Y && HeadPosition.X != Position.X) {
+                // head and tail right next to each other
+                Position.X += (HeadPosition.X - Position.X) / 2;
+                return;
+            }
+            // head and tail are in "knight position"
+            if (Math.Abs(HeadPosition.X - Position.X) <= 1) {
+                Position.X = HeadPosition.X;
+            } else {
+                Position.X = (int) Math.Round((HeadPosition.X + Position.X) / 2.0);
+            }
+            if (Math.Abs(HeadPosition.Y - Position.Y) <= 1) {
+                Position.Y = HeadPosition.Y;
+            } else {
+                Position.Y = (int) Math.Round((HeadPosition.Y + Position.Y) / 2.0);
             }
         }
     }

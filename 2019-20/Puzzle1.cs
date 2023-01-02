@@ -1,9 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
+using AoC.algorithm.backtrack;
 
 namespace AoC;
 
-public class Puzzle1 {
+/// <summary>
+/// This uses a backtrack algorithm, <see cref="BacktrackAlgorithm{TPosition}"/>.
+/// </summary>
+public class Puzzle1 : BacktrackAlgorithm<Point>.IPositionManager {
 
     private readonly DonutMaze _maze;
     
@@ -12,48 +16,17 @@ public class Puzzle1 {
     }
 
     public int SolveReturnSteps() {
-        var solutions = new List<Point[]>();
-        var currentSteps = new List<Point> {
-            _maze.Portals.Single(p => p.Name == DonutMaze.StartPortal).Location
-        };
-        Solve(solutions, currentSteps);
-        return solutions.MinBy(s => s.Length)?.Length ?? -1;
+        var startPoint = _maze.FetchStartPortal().Location;
+        var endPoint = _maze.FetchEndPortal().Location;
+        var backtrack = new BacktrackAlgorithm<Point>(this);
+        return backtrack.Solve(startPoint, endPoint).MinBy(s => s.Length)?.Length - 1 ?? -1;
     }
 
-    private void Solve(List<Point[]> solutions, List<Point> currentSteps) {
-        var position = currentSteps[^1];
-        var possibleNextPositions = _maze.FindPossibleNextPositions(position)
-            .Where(p => !currentSteps.Contains(p)) // we will not backtrack
-            .ToArray();
-
-        if (possibleNextPositions.Length == 0) {
-            return; // there is no way to go
+    public IEnumerable<Point> FindPossibleNextPositions(Point position) {
+        var result = _maze.FindPossibleNextPositions(position).ToList();
+        if (_maze.PortalConnections.ContainsKey(position)) {
+            result.Add(_maze.PortalConnections[position]);
         }
-
-        if (possibleNextPositions.Length == 1) {
-            // there is only one way to go, so go there
-            Step(solutions, currentSteps, possibleNextPositions[0]);
-            return;
-        }
-
-        foreach (var possibleNextPosition in possibleNextPositions) {
-            Step(solutions, new List<Point>(currentSteps), possibleNextPosition);
-        }
-    }
-
-    private void Step(List<Point[]> solutions, List<Point> currentSteps, Point nextPosition) {
-        if (_maze.PortalConnections.ContainsKey(nextPosition)) {
-            // the next step is a portal field
-            currentSteps.Add(nextPosition);
-            currentSteps.Add(_maze.PortalConnections[nextPosition]);
-            Solve(solutions, currentSteps);
-        } else if (_maze.Maze[nextPosition.X][nextPosition.Y] == DonutMaze.End) {
-            // the next step is THE END
-            solutions.Add(currentSteps.ToArray());
-        } else {
-            // the next step is a regular field
-            currentSteps.Add(nextPosition);
-            Solve(solutions, currentSteps);
-        }
+        return result;
     }
 }

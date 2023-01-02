@@ -157,6 +157,14 @@ public class DonutMaze {
         return Portals.Single(p => p.Location == location);
     }
     
+    public Portal FetchStartPortal() {
+        return Portals.Single(p => p.Name == StartPortal);
+    }
+    
+    public Portal FetchEndPortal() {
+        return Portals.Single(p => p.Name == EndPortal);
+    }
+    
     public override string ToString() {
         var result = $"Ring Size: {_ringSize}\n" +
                      $"Hole Size: {_holeSize}\n";
@@ -175,4 +183,8 @@ public class DonutMaze {
 
 public record Point(int X, int Y);
 
-public record Portal(string Name, Point Location, bool OuterPortal);
+public record Portal(string Name, Point Location, bool OuterPortal) {
+
+    private static int _nextId = 1;
+    public int Id { get; } = _nextId++;
+}
