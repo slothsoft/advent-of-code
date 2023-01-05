@@ -21,7 +21,7 @@ public final class SubmarineMovement {
 	}
 
 	private static String[] ReadInput(InputStream input) {
-		try (Scanner scanner = new Scanner(input, StandardCharsets.UTF_8.name())) {
+		try (Scanner scanner = new Scanner(input, StandardCharsets.UTF_8)) {
 			return scanner.useDelimiter("\\A").next().split("\n");
 		}
 	}
@@ -56,7 +56,7 @@ public final class SubmarineMovement {
 		// hide this constructor
 	}
 	
-	private static enum SimpleDirection {
+	private enum SimpleDirection {
 		FORWARD {
 			@Override
 			protected void apply(int[] coordinates, int value) {
@@ -80,7 +80,7 @@ public final class SubmarineMovement {
 		protected abstract void apply(int[] coordinates, int value);
 	}
 
-	private static enum ComplexDirection {
+	private enum ComplexDirection {
 		FORWARD {
 			@Override
 			protected void apply(int[] coordinates, int value) {

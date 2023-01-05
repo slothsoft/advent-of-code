@@ -1,11 +1,7 @@
 package d12;
 
-import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
-
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * <a href="https://adventofcode.com/2021/day/12">Day 12: Passage Pathing</a>: With your submarine's subterranean
@@ -17,7 +13,7 @@ public final class PassagePathing {
     private static final String START = "start";
     private static final String END = "end";
 
-    private Map<String, Set<String>> paths = new HashMap<>();
+    private final Map<String, Set<String>> paths = new HashMap<>();
 
     public PassagePathing(String[] input) {
         for (String line : input) {
@@ -41,7 +37,7 @@ public final class PassagePathing {
     Set<String[]> createAllPaths() {
         Map<String, Integer> entriesAllowed = createCaveEntriesAllowed();
         Set<String[]> createdPaths = new TreeSet<>(Comparator.comparing(Arrays::toString));
-        createPaths(START, createdPaths, entriesAllowed, new ArrayList<>(Arrays.asList(START)));
+        createPaths(START, createdPaths, entriesAllowed, new ArrayList<>(List.of(START)));
         return createdPaths;
     }
 
@@ -66,10 +62,9 @@ public final class PassagePathing {
 
         if (start.equals(END)) {
             // we are at the end of the cave! add to list and return early
-            createdPaths.add(currentPath.toArray(new String[currentPath.size()]));
+            createdPaths.add(currentPath.toArray(new String[0]));
             return;
         }
-
 
         String[] possiblePaths = paths.get(start).stream().filter(p -> entriesAllowed.get(p) > 0).toArray(String[]::new);
 
@@ -104,14 +99,14 @@ public final class PassagePathing {
         List<String> smallCaves = entriesAllowed.entrySet()
                 .stream()
                 .filter(e -> e.getValue() == 1)
-                .map(e -> e.getKey())
+                .map(Map.Entry::getKey)
                 .filter(k -> !START.equals(k) && !END.equals(k))
                 .collect(Collectors.toList());
 
         for (String smallCave : smallCaves) {
             Map<String, Integer> newEntriesAllowed = new HashMap<>(entriesAllowed);
             newEntriesAllowed.put(smallCave, 2);
-            createPaths(START, createdPaths, newEntriesAllowed, new ArrayList<>(Arrays.asList(START)));
+            createPaths(START, createdPaths, newEntriesAllowed, new ArrayList<>(List.of(START)));
         }
         return createdPaths;
     }

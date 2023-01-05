@@ -21,16 +21,14 @@
     },
     {
       "Year": "2021",
-      "Day": "6",
       "Language": "JavaScript",
-      "Directory": "2021-06",
+      "Directory": "2021/src/test/javascript",
       "ShowCheckboxOnly": "true"
     },
     {
       "Year": "2021",
-      "Day": "11",
-      "Language": "JavaScript",
-      "Directory": "2021-11",
+      "Language": "C#",
+      "Directory": "2021/src/test/csharp",
       "ShowCheckboxOnly": "true"
     },
     {
@@ -38,6 +36,13 @@
       "Day": "20",
       "Language": "C#",
       "Directory": "2019-20",
+      "ShowCheckboxOnly": "true"
+    },
+    {
+      "Year": "2021",
+      "Day": "23",
+      "Language": "Mathematica",
+      "Directory": "2021/src/test/resources/d23",
       "ShowCheckboxOnly": "true"
     }
   ]

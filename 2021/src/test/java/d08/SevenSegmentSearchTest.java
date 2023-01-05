@@ -82,7 +82,7 @@ public class SevenSegmentSearchTest {
         Assert.assertEquals(8, SevenSegmentSearch.createNumber(decodeMap, "gadcfbe").intValue());
         Assert.assertEquals(9, SevenSegmentSearch.createNumber(decodeMap, "efcbdg").intValue());
 
-        Assert.assertEquals(null, SevenSegmentSearch.createNumber(decodeMap, "abcefg"));
+        Assert.assertNull(SevenSegmentSearch.createNumber(decodeMap, "abcefg"));
     }
 
     @Test
@@ -120,7 +120,7 @@ public class SevenSegmentSearchTest {
     }
 
     private static String[] readInput(InputStream input) {
-        try (Scanner scanner = new Scanner(input, StandardCharsets.UTF_8.name())) {
+        try (Scanner scanner = new Scanner(input, StandardCharsets.UTF_8)) {
             return scanner.useDelimiter("\\A").next().split("\\R");
         }
     }

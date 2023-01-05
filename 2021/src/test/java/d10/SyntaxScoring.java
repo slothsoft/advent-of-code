@@ -4,7 +4,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -25,10 +24,10 @@ public final class SyntaxScoring {
         BRACE(1197, 3, '{', '}'),  // }
         GREATER_THAN(25137, 4, '<', '>'), // >
         ;
-        public int syntaxErrorScore;
-        public int closingScore;
-        public char startingChar;
-        public char endingChar;
+        public final int syntaxErrorScore;
+        public final int closingScore;
+        public final char startingChar;
+        public final char endingChar;
         ValidationResult(int syntaxErrorScore, int closingScore, char startingChar, char endingChar) {
             this.syntaxErrorScore = syntaxErrorScore;
             this.closingScore = closingScore;
@@ -92,7 +91,7 @@ public final class SyntaxScoring {
                 .filter(i -> i != 0)
                 .sorted()
                 .toArray();
-        Assert.assertTrue("There will always be an odd number of scores to consider!", scores.length % 2 == 1);
+        Assert.assertEquals("There will always be an odd number of scores to consider!", 1, scores.length % 2);
         Assert.assertFalse("The score cannot be negative (possibly int overflow?)!", Arrays.stream(scores).anyMatch(i -> i < 0));
         return scores[scores.length / 2];
     }

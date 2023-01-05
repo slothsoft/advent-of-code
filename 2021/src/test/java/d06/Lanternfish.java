@@ -1,10 +1,7 @@
 package d06;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 /**
  * <a href="https://adventofcode.com/2021/day/6">Day 6: Lanternfish</a>:The sea
