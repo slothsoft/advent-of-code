@@ -77,6 +77,11 @@ Some of the challenges where done in a [JavaScript simulation](https://slothsoft
 <a href="./2021/src/test/java/d25"><img src="./Calendar/Tiles/2021/25.svg" width="150px"></a>
 
 
+# 2020
+
+<a href="./2020/01"><img src="./Calendar/Tiles/2020/01.svg" width="150px"></a>
+
+
 # 2019
 
 <a href="./2019-20/"><img src="./Calendar/Tiles/2019/20.svg" width="150px"></a>
