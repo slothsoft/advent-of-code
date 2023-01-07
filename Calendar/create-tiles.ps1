@@ -16,6 +16,8 @@ function DoSomething($scriptBlock) {
 
 $calendarJson = (gc "$PSScriptRoot\calendar.json" -encoding utf8) | ConvertFrom-Json
 
+$languagesJson = (gc "$PSScriptRoot\languages.json" -encoding utf8) | ConvertFrom-Json
+
 $environmentJson = (gc "$PSScriptRoot\environment.json" -encoding utf8) | ConvertFrom-Json
 if (!$environmentJson.Cookie) {
     throw "Environment file with cookie was not found!"
@@ -49,7 +51,11 @@ foreach ($codeSet in $calendarJson.CodeSets) {
         $calendarData[$year] = [ordered]@{ }
     }
 
-    $color = $colorsJson.PSObject.Properties[$language].PSObject.Properties["Value"].Value.PSObject.Properties["color"].Value # ???
+    if ($language -eq "auto") {
+        $color = "#00FF00"
+    } else {
+        $color = $colorsJson.PSObject.Properties[$language].PSObject.Properties["Value"].Value.PSObject.Properties["color"].Value # ???
+    }
     if (!$color) {
         $color = "#FF0000"
     }
@@ -99,7 +105,7 @@ foreach ($codeSet in $calendarJson.CodeSets) {
             return 0
         }
     }
-	
+
     foreach ($file in $dayFolders) {
         $folderName = $file.Name
 		
@@ -134,13 +140,38 @@ foreach ($codeSet in $calendarJson.CodeSets) {
                     $dailyScore.Part2Time = "&#9745;"
                 }
             }
+
+            $usedLanguage = $language
+            if ($usedLanguage -eq "auto") {
+                $dayFolder = @("$PSScriptRoot\..\$directory")
+                $color = "#00FF00"
+                $usedLanguage = ""
+                $detectedFiles = Get-ChildItem $file.FullName
+                foreach ($detectedFile in $detectedFiles) {
+                    foreach ($possibleLanguage in $languagesJson.Languages) {
+                        if ($detectedFile -match ('.' + $possibleLanguage.Extension + '$')) {
+                            $usedLanguage = $possibleLanguage.Name
+
+                            if ($possibleLanguage.Color) {
+                                $color = $possibleLanguage.Color
+                            } else {
+                                $color = $colorsJson.PSObject.Properties[$usedLanguage].PSObject.Properties["Value"].Value.PSObject.Properties["color"].Value # ???
+                            }
+                            break
+                        }
+                    }
+                    if ($usedLanguage) {
+                        break
+                    }
+                }
+            }
          
             $svg = Get-Content "$PSScriptRoot\calendar-tile.svg"
 
             $svg = $svg -replace 'XXX', $dayWithZero
             $svg = $svg -replace 'PART_1_TIME', $dailyScore.Part1Time
             $svg = $svg -replace 'PART_2_TIME', $dailyScore.Part2Time
-            $svg = $svg -replace 'LANGUAGE', $language
+            $svg = $svg -replace 'LANGUAGE', $usedLanguage
             $svg = $svg -replace '#00FF00', $color
 
             $svg | Out-File -encoding utf8 ("$tilesForYear\$dayWithZero.svg")
