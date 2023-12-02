@@ -22,6 +22,11 @@
       "Extension": "cs"
     },
     {
+      "Name": "Dart",
+      "Extension": "dart",
+      "OnlineCompiler": "https://www.jdoodle.com/execute-dart-online/"
+    },
+    {
       "Name": "Java",
       "Extension": "java"
     },
