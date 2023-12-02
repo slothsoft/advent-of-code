@@ -167,12 +167,17 @@ foreach ($codeSet in $calendarJson.CodeSets) {
             }
          
             $svg = Get-Content "$PSScriptRoot\calendar-tile.svg"
+            
+            If (Test-Path -path "$PSScriptRoot\calendar-tile-$year.svg" -PathType Leaf) {
+                $svg = Get-Content "$PSScriptRoot\calendar-tile-$year.svg"
+            }
 
             $svg = $svg -replace 'XXX', $dayWithZero
             $svg = $svg -replace 'PART_1_TIME', $dailyScore.Part1Time
             $svg = $svg -replace 'PART_2_TIME', $dailyScore.Part2Time
             $svg = $svg -replace 'LANGUAGE', $usedLanguage
             $svg = $svg -replace '#00FF00', $color
+            $svg = $svg -replace 'YEAR', $year
 
             $svg | Out-File -encoding utf8 ("$tilesForYear\$dayWithZero.svg")
 
