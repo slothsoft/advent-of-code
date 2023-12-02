@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace AoC;
 
@@ -25,7 +24,7 @@ public static class CalibrationValue {
     }
 
     internal static int CalculateSingle(string input) {
-        var withoutRubbish = Regex.Replace(input, "[^0-9]+", "");
+        var withoutRubbish = input.ExtractDigitsAsString();
         return int.Parse(withoutRubbish.First().ToString() + withoutRubbish.Last());
     }
 

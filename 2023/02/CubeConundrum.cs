@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace AoC;
 
@@ -73,19 +72,15 @@ public class CubeConundrum {
         var result = new Draw();
         foreach (var color in colors) {
             if (color.Contains("red")) {
-                result.Red = ExtractNumber(color);
+                result.Red = color.ExtractDigitsAsInt();
             } else if (color.Contains("blue")) {
-                result.Blue = ExtractNumber(color);
+                result.Blue = color.ExtractDigitsAsInt();
             } else if (color.Contains("green")) {
-                result.Green = ExtractNumber(color);
+                result.Green = color.ExtractDigitsAsInt();
             }
         }
 
         return result;
-    }
-
-    private static int ExtractNumber(string color) {
-        return int.Parse(Regex.Replace(color, "[^0-9]+", ""));
     }
 
     public IEnumerable<Game> FindGamesPossibleWithBagContent(Draw draw) {
