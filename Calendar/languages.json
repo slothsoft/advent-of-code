@@ -14,7 +14,7 @@
     },
     {
       "Name": "BASIC",
-      "Extension": "bas",
+      "Extension": "vs",
       "OnlineCompiler": "https://www.jdoodle.com/execute-freebasic-online/"
     },
     {
@@ -30,6 +30,10 @@
       "Name": "Excel",
       "Extension": "xlsx",
       "Color": "#E34C26"
+    },
+    {
+      "Name": "FreeBASIC",
+      "Extension": "bas"
     },
     {
       "Name": "Java",
