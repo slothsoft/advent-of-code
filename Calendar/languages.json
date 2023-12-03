@@ -27,6 +27,11 @@
       "OnlineCompiler": "https://www.jdoodle.com/execute-dart-online/"
     },
     {
+      "Name": "Excel",
+      "Extension": "xlsx",
+      "Color": "#E34C26"
+    },
+    {
       "Name": "Java",
       "Extension": "java"
     },
