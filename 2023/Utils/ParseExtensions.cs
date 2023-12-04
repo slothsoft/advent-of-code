@@ -75,4 +75,18 @@ public static class ParseExtensions {
 
         return result?.Select(r => r!.ToArray()).ToArray() ?? Array.Empty<TResult[]>();
     }
+
+    /// <summary>
+    /// Parses an input of strings into a matrix of values.
+    /// </summary>
+    /// <param name="input">the input string</param>
+    /// <param name="separator">what separates the ints</param>
+    /// <returns>a  with X as the first coordinate and y as second</returns>
+    public static int[] ParseIntArray(this string input, char separator = ' ') {
+        if (input.Length == 0) {
+            return Array.Empty<int>();
+        }
+        
+        return input.Trim().Split(separator).Select(ExtractDigitsAsInt).ToArray();
+    }
 }

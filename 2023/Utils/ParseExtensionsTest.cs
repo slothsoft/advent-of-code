@@ -93,4 +93,23 @@ public class ParseExtensionsTest {
         Assert.AreEqual('l', matrix[2][3]);
     }
 
+    [Test]
+    [TestCase("", new int[0])]
+    [TestCase("1 2 3", new[] {1, 2, 3})]
+    [TestCase("  4 5 6  ", new[] {4, 5, 6})]
+    public void TestParseIntArray(string input, int[] expected) {
+        var someInts = input.ParseIntArray();
+
+        Assert.AreEqual(expected, someInts);
+    }
+    
+    [Test]
+    [TestCase("", '.', new int[0])]
+    [TestCase("1_2_3", '_', new[] {1, 2, 3})]
+    [TestCase("  4|5|6  ", '|', new[] {4, 5, 6})]
+    public void TestParseIntArray(string input, char separator, int[] expected) {
+        var someInts = input.ParseIntArray(separator);
+
+        Assert.AreEqual(expected, someInts);
+    }
 }
