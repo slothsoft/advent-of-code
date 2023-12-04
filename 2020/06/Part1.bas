@@ -48,6 +48,6 @@ DO
     END IF
 LOOP UNTIL endCounter > 1 
 
-Print #2, "Sum: ";entireCount
+Print #2, "Sum: ";entireCount // 6630
 
 Close
