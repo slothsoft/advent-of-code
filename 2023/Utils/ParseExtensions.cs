@@ -20,6 +20,17 @@ public static class ParseExtensions {
     /// Ignores everything else in the input string except for digits 0 to 9. Returns these as an int.
     /// </summary>
     /// <param name="input">string, e.g. "tr3buche7"</param>
+    /// <returns>result, e.g. 37</returns>
+    
+    public static long ExtractDigitsAsLong(this string input) {
+        // TODO: Test
+        return long.Parse(input.ExtractDigitsAsString());
+    }
+    
+    /// <summary>
+    /// Ignores everything else in the input string except for digits 0 to 9. Returns these as an int.
+    /// </summary>
+    /// <param name="input">string, e.g. "tr3buche7"</param>
     /// <returns>result, e.g. "37"</returns>
     
     public static string ExtractDigitsAsString(this string input) {
@@ -88,5 +99,20 @@ public static class ParseExtensions {
         }
         
         return input.Trim().Split(separator).Select(ExtractDigitsAsInt).ToArray();
+    }
+    
+    /// <summary>
+    /// Parses an input of strings into a matrix of values.
+    /// </summary>
+    /// <param name="input">the input string</param>
+    /// <param name="separator">what separates the ints</param>
+    /// <returns>a  with X as the first coordinate and y as second</returns>
+    public static long[] ParseLongArray(this string input, char separator = ' ') {
+        // TODO: Test
+        if (input.Length == 0) {
+            return Array.Empty<long>();
+        }
+        
+        return input.Trim().Split(separator).Select(ExtractDigitsAsLong).ToArray();
     }
 }
