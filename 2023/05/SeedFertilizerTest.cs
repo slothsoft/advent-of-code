@@ -66,20 +66,20 @@ public class SeedFertilizerTest {
         Assert.AreEqual(251_346_198, puzzle.GetLowestSeedLocation());
     }
     
-    [Test]
-    [TestCaseSource(nameof(GetSeedLocationData))]
-    public void Example2_GetMinSeedLocation(long seed, long location) {
-        var (almanac, _) = SeedFertilizer.ParseAlmanac(File.ReadAllLines(@"05\example.txt"));
-        
-        Assert.AreEqual(location, almanac.GetMinSeedLocation(seed, seed + 1));
-    }
-
-    [Test]
-    public void Example2() {
-        var example = new SeedFertilizer(File.ReadAllLines(@"05\example.txt"));
-    
-        Assert.AreEqual(46, example.GetLowestSeedLocationForRange());
-    }
+    // [Test]
+    // [TestCaseSource(nameof(GetSeedLocationData))]
+    // public void Example2_GetMinSeedLocation(long seed, long location) {
+    //     var (almanac, _) = SeedFertilizer.ParseAlmanac(File.ReadAllLines(@"05\example.txt"));
+    //     
+    //     Assert.AreEqual(location, almanac.GetMinSeedLocation(seed, seed + 1));
+    // }
+    //
+    // [Test]
+    // public void Example2() {
+    //     var example = new SeedFertilizer(File.ReadAllLines(@"05\example.txt"));
+    //
+    //     Assert.AreEqual(46, example.GetLowestSeedLocationForRange());
+    // }
     
     // [Test]
     // public void Puzzle2() {

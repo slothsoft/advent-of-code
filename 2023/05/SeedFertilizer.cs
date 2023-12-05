@@ -8,7 +8,7 @@ namespace AoC;
 /// <a href="https://adventofcode.com/2023/day/5">Day 5: If You Give A Seed A Fertilizer</a>: What is the lowest location number that corresponds to any of the initial seed numbers?
 /// </summary>
 public class SeedFertilizer {
-    public record Almanac() {
+    public record Almanac {
         public AlmanacMap[] AlmanacMaps { get; } = new AlmanacMap[MAX_ALMANAC_MAPS];
 
         public AlmanacMap SeedToSoilMap {
@@ -54,22 +54,6 @@ public class SeedFertilizer {
             
             return result;
         }
-
-        public long GetMinSeedLocation(long fromSeed, long toSeed) {
-            var mapFunctions = AlmanacMaps.Select(m => m.FetchFunction(fromSeed, toSeed)).ToArray();
-            var result = long.MaxValue;
-
-            for (var seed = fromSeed; seed < toSeed; seed++) {
-                var location = seed;
-                foreach (var mapFunction in mapFunctions) {
-                    var key = mapFunction.Keys.Single(r => r.Contains(location));
-                    location = mapFunction[key](location);
-                }
-                result = Math.Min(result, location);
-            }
-
-            return result;
-        }
     }
 
     public record AlmanacMap {
@@ -84,34 +68,6 @@ public class SeedFertilizer {
 
         public void AddRange(long[] range) {
             _ranges.Add(new AlmanacMapRange(range));
-        }
-
-        internal IDictionary<Range, Func<long, long>> FetchFunction(long fromSeed, long toSeed) {
-            var rangesToFunction = new Dictionary<Range, Func<long, long>> {
-                {new Range(fromSeed, toSeed), seed => seed}
-            };
-
-            foreach (var rangeWithFunction in _ranges) {
-                foreach (var range in rangesToFunction.Keys.ToArray()) {
-                    var intersection = rangeWithFunction.Intersects(range.From, range.To);
-                    if (intersection != null) {
-                        var function = rangesToFunction[range];
-                        rangesToFunction.Remove(range);
-
-                        if (range.From < intersection.Value.From) {
-                            rangesToFunction.Add(new Range(range.From, intersection.Value.From), function);
-                        }
-
-                        rangesToFunction.Add(intersection.Value, input => rangeWithFunction[input]);
-
-                        if (range.To > intersection.Value.To) {
-                            rangesToFunction.Add(new Range(intersection.Value.To, range.To), function);
-                        }
-                    }
-                }
-            }
-
-            return rangesToFunction;
         }
     }
 
@@ -231,15 +187,6 @@ public class SeedFertilizer {
         var result = long.MaxValue;
         for (var i = 0; i < Seeds.Length; i++) {
             result = Math.Min(result, _almanac.GetSeedLocation(Seeds[i]));
-        }
-
-        return result;
-    }
-
-    public long GetLowestSeedLocationForRange() {
-        var result = long.MaxValue;
-        for (var i = 0; i < Seeds.Length; i += 2) {
-            result = Math.Min(result, _almanac.GetMinSeedLocation(Seeds[i], Seeds[i] + Seeds[i + 1]));
         }
 
         return result;
