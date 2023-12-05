@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 
 namespace AoC;
 
@@ -12,7 +13,7 @@ public class SeedFertilizer {
         public AlmanacMap[] AlmanacMaps { get; } = new AlmanacMap[MAX_ALMANAC_MAPS];
 
         public AlmanacMap SeedToSoilMap {
-            get => AlmanacMaps[SEED_TO_SOIL]; 
+            get => AlmanacMaps[SEED_TO_SOIL];
             set => AlmanacMaps[SEED_TO_SOIL] = value;
         }
 
@@ -49,25 +50,68 @@ public class SeedFertilizer {
         public long GetSeedLocation(long seed) {
             var result = seed;
             foreach (var almanacMap in AlmanacMaps) {
-                result = almanacMap[result];
+                result = almanacMap.Map(result);
             }
-            
+
             return result;
+        }
+
+        public long GetMinSeedLocation(long seedFrom, long seedTo) {
+            var seedRanges = new[] { new Range(seedFrom, seedTo) };
+
+            // split the seed range in more ranges so every map function 
+            foreach (var almanacMap in AlmanacMaps) {
+                seedRanges = almanacMap.Map(seedRanges);
+            }
+
+            // the From of these ranges always has a smaller value then the To
+            return seedRanges.Select(r => r.From).Min();
         }
     }
 
     public record AlmanacMap {
-        private IList<AlmanacMapRange> _ranges = new List<AlmanacMapRange>();
+        private IList<AlmanacMapRange> Ranges { get; } = new List<AlmanacMapRange>();
 
-        public long this[long key] {
-            get {
-                var range = _ranges.SingleOrDefault(r => r.Contains(key));
-                return range?[key] ?? key;
+        public long Map(long key) {
+            var range = Ranges.SingleOrDefault(r => r.Contains(key));
+            return range?[key] ?? key;
+        }
+        
+        public Range[] Map(params Range[] inputRanges) {
+            var result = new List<Range>();
+            result.AddRange(inputRanges);
+            var additionalRanges = new List<Range>();
+            
+            foreach (var mapRange in Ranges) {
+                foreach (var inputRange in result.ToArray()) {
+                    var intersection = mapRange.Intersection(inputRange.From,  inputRange.To);
+                    if (intersection == null) {
+                        // if these ranges do not intersect the specific input range is not changed as result
+                    } else {
+                        // if the ranges overlap, then the result will get up to three new ranges to handle all parts of the INPUT range
+                        if (intersection.Value.From > inputRange.From) {
+                            // intersection starts after the input range was already started
+                            additionalRanges.Add(new Range(inputRange.From, intersection.Value.From));
+                        }
+
+                        result.Remove(inputRange);
+                        additionalRanges.Add(new Range(mapRange[intersection.Value.From], mapRange[inputRange.To]));
+                        
+                        if (intersection.Value.To < inputRange.To) {
+                            // intersection ends before the input range is over
+                            additionalRanges.Add(new Range(intersection.Value.To, inputRange.To));
+                        }
+                    }
+                    
+                }
             }
+            
+            result.AddRange(additionalRanges);
+            return result.ToArray();
         }
 
         public void AddRange(long[] range) {
-            _ranges.Add(new AlmanacMapRange(range));
+            Ranges.Add(new AlmanacMapRange(range));
         }
     }
 
@@ -90,9 +134,9 @@ public class SeedFertilizer {
             return SourceRange.Contains(value);
         }
 
-        public Range? Intersects(long rangeFrom, long rangeTo) {
-            var fromMax = Math.Max(rangeFrom, DestinationRange.From);
-            var toMin = Math.Min(rangeTo, DestinationRange.To);
+        public Range? Intersection(long rangeFrom, long rangeTo) {
+            var fromMax = Math.Max(rangeFrom, SourceRange.From);
+            var toMin = Math.Min(rangeTo, SourceRange.To);
 
             if (fromMax >= toMin) {
                 return null;
@@ -100,11 +144,11 @@ public class SeedFertilizer {
 
             return new Range(fromMax, toMin);
         }
-        
+
         public override string ToString() => $"AlmanacMapRange: ({SourceRange}) -> ({DestinationRange})";
     }
 
-    internal struct Range {
+    public readonly struct Range {
         public Range(long from, long to) {
             From = from;
             To = to;
@@ -116,18 +160,7 @@ public class SeedFertilizer {
         public bool Contains(long value) {
             return value.CompareTo(From) >= 0 && value.CompareTo(To) < 0;
         }
-
-        public Range? CalculateIntersection(long rangeFrom, long rangeTo) {
-            var fromMax = Math.Max(rangeFrom, From);
-            var toMin = Math.Min(rangeTo, To);
-
-            if (fromMax >= toMin) {
-                return null;
-            }
-
-            return new Range(fromMax, toMin);
-        }
-
+        
         public override string ToString() => $"Range: {From} -> {To}";
     }
 
@@ -145,7 +178,7 @@ public class SeedFertilizer {
     public SeedFertilizer(IEnumerable<string> input) {
         (_almanac, Seeds) = ParseAlmanac(input);
     }
-    
+
     public long[] Seeds { get; set; }
 
     public static (Almanac, long[]) ParseAlmanac(IEnumerable<string> input) {
@@ -187,6 +220,15 @@ public class SeedFertilizer {
         var result = long.MaxValue;
         for (var i = 0; i < Seeds.Length; i++) {
             result = Math.Min(result, _almanac.GetSeedLocation(Seeds[i]));
+        }
+
+        return result;
+    }
+
+    public long GetLowestSeedLocationForRange() {
+        var result = long.MaxValue;
+        for (var i = 0; i < Seeds.Length; i+= 2) {
+            result = Math.Min(result, _almanac.GetMinSeedLocation(Seeds[i], Seeds[i] + Seeds[i + 1]));
         }
 
         return result;

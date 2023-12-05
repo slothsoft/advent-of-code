@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using NUnit.Framework;
 
 namespace AoC;
@@ -23,13 +22,13 @@ public class SeedFertilizerTest {
     public void Example1_AlmanacMap(long seed, long soil, long fertilizer, long water, long light, long temperature, long humidity, long location) {
         var (almanac, _) = SeedFertilizer.ParseAlmanac(File.ReadAllLines(@"05\example.txt"));
         
-        Assert.AreEqual(soil, almanac.SeedToSoilMap[seed]);
-        Assert.AreEqual(fertilizer, almanac.SoilToFertilizerMap[soil]);
-        Assert.AreEqual(water, almanac.FertilizerToWaterMap[fertilizer]);
-        Assert.AreEqual(light, almanac.WaterToLightMap[water]);
-        Assert.AreEqual(temperature, almanac.LightToTemperatureMap[light]);
-        Assert.AreEqual(humidity, almanac.TemperatureToHumidityMap[temperature]);
-        Assert.AreEqual(location, almanac.HumidityToLocationMap[humidity]);
+        Assert.AreEqual(soil, almanac.SeedToSoilMap.Map(seed));
+        Assert.AreEqual(fertilizer, almanac.SoilToFertilizerMap.Map(soil));
+        Assert.AreEqual(water, almanac.FertilizerToWaterMap.Map(fertilizer));
+        Assert.AreEqual(light, almanac.WaterToLightMap.Map(water));
+        Assert.AreEqual(temperature, almanac.LightToTemperatureMap.Map(light));
+        Assert.AreEqual(humidity, almanac.TemperatureToHumidityMap.Map(temperature));
+        Assert.AreEqual(location, almanac.HumidityToLocationMap.Map(humidity));
     }
 
     private static IEnumerable<TestCaseData> GetSeedSoilFertilizerWaterLightTemperatureHumidityLocationData() {
@@ -66,25 +65,26 @@ public class SeedFertilizerTest {
         Assert.AreEqual(251_346_198, puzzle.GetLowestSeedLocation());
     }
     
-    // [Test]
-    // [TestCaseSource(nameof(GetSeedLocationData))]
-    // public void Example2_GetMinSeedLocation(long seed, long location) {
-    //     var (almanac, _) = SeedFertilizer.ParseAlmanac(File.ReadAllLines(@"05\example.txt"));
-    //     
-    //     Assert.AreEqual(location, almanac.GetMinSeedLocation(seed, seed + 1));
-    // }
-    //
-    // [Test]
-    // public void Example2() {
-    //     var example = new SeedFertilizer(File.ReadAllLines(@"05\example.txt"));
-    //
-    //     Assert.AreEqual(46, example.GetLowestSeedLocationForRange());
-    // }
+    [Test]
+    [TestCaseSource(nameof(GetSeedLocationData))]
+    public void Example2_GetMinSeedLocation(long seed, long location) {
+        //yield return new TestCaseData(14,14,53,49,42,42,43,43);
+        var (almanac, _) = SeedFertilizer.ParseAlmanac(File.ReadAllLines(@"05\example.txt"));
+        
+        Assert.AreEqual(location, almanac.GetMinSeedLocation(seed, seed + 1));
+    }
     
-    // [Test]
-    // public void Puzzle2() {
-    //     var puzzle = new SeedFertilizer(File.ReadAllLines(@"05\input.txt"));
-    //     
-    //     Assert.AreEqual(251346198, puzzle.GetLowestSeedLocationForRange());
-    // }
+    [Test]
+    public void Example2() {
+        var example = new SeedFertilizer(File.ReadAllLines(@"05\example.txt"));
+    
+        Assert.AreEqual(46, example.GetLowestSeedLocationForRange());
+    }
+    
+    [Test]
+    public void Puzzle2() {
+        var puzzle = new SeedFertilizer(File.ReadAllLines(@"05\input.txt"));
+        
+        Assert.AreEqual(251346198, puzzle.GetLowestSeedLocationForRange());
+    }
 }
