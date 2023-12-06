@@ -95,7 +95,7 @@ public class SeedFertilizer {
                         }
 
                         result.Remove(inputRange);
-                        additionalRanges.Add(new Range(mapRange[intersection.Value.From], mapRange[inputRange.To]));
+                        additionalRanges.Add(new Range(mapRange[intersection.Value.From], mapRange[intersection.Value.To]));
                         
                         if (intersection.Value.To < inputRange.To) {
                             // intersection ends before the input range is over

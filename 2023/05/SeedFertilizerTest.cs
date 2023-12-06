@@ -68,7 +68,6 @@ public class SeedFertilizerTest {
     [Test]
     [TestCaseSource(nameof(GetSeedLocationData))]
     public void Example2_GetMinSeedLocation(long seed, long location) {
-        //yield return new TestCaseData(14,14,53,49,42,42,43,43);
         var (almanac, _) = SeedFertilizer.ParseAlmanac(File.ReadAllLines(@"05\example.txt"));
         
         Assert.AreEqual(location, almanac.GetMinSeedLocation(seed, seed + 1));
@@ -85,6 +84,6 @@ public class SeedFertilizerTest {
     public void Puzzle2() {
         var puzzle = new SeedFertilizer(File.ReadAllLines(@"05\input.txt"));
         
-        Assert.AreEqual(251346198, puzzle.GetLowestSeedLocationForRange());
+        Assert.AreEqual(72263011, puzzle.GetLowestSeedLocationForRange());
     }
 }
