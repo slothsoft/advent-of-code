@@ -23,4 +23,28 @@ public static class ComparableExtensions {
         where TValue : IComparable<TValue> {
         return value.CompareTo(other) < 0;
     }
+    
+    public static TValue Max<TValue>(this TValue value, params TValue[] others)
+        where TValue : IComparable<TValue> {
+        var result = value;
+        foreach (var other in others) {
+            if (other.IsGreaterThan(result)) {
+                result = other;
+            }
+        }
+        
+        return result;
+    }
+    
+    public static TValue Min<TValue>(this TValue value, params TValue[] others)
+        where TValue : IComparable<TValue> {
+        var result = value;
+        foreach (var other in others) {
+            if (other.IsSmallerThan(result)) {
+                result = other;
+            }
+        }
+        
+        return result;
+    }
 }

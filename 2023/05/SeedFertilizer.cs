@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
 
 namespace AoC;
 
@@ -57,7 +56,7 @@ public class SeedFertilizer {
         }
 
         public long GetMinSeedLocation(long seedFrom, long seedTo) {
-            var seedRanges = new[] { new Range(seedFrom, seedTo) };
+            var seedRanges = new[] { new Range<long>(seedFrom, seedTo) };
 
             // split the seed range in more ranges so every map function 
             foreach (var almanacMap in AlmanacMaps) {
@@ -77,10 +76,10 @@ public class SeedFertilizer {
             return range?[key] ?? key;
         }
         
-        public Range[] Map(params Range[] inputRanges) {
-            var result = new List<Range>();
+        public Range<long>[] Map(params Range<long>[] inputRanges) {
+            var result = new List<Range<long>>();
             result.AddRange(inputRanges);
-            var additionalRanges = new List<Range>();
+            var additionalRanges = new List<Range<long>>();
             
             foreach (var mapRange in Ranges) {
                 foreach (var inputRange in result.ToArray()) {
@@ -91,15 +90,15 @@ public class SeedFertilizer {
                         // if the ranges overlap, then the result will get up to three new ranges to handle all parts of the INPUT range
                         if (intersection.Value.From > inputRange.From) {
                             // intersection starts after the input range was already started
-                            additionalRanges.Add(new Range(inputRange.From, intersection.Value.From));
+                            additionalRanges.Add(new Range<long>(inputRange.From, intersection.Value.From));
                         }
 
                         result.Remove(inputRange);
-                        additionalRanges.Add(new Range(mapRange[intersection.Value.From], mapRange[intersection.Value.To]));
+                        additionalRanges.Add(new Range<long>(mapRange[intersection.Value.From], mapRange[intersection.Value.To]));
                         
                         if (intersection.Value.To < inputRange.To) {
                             // intersection ends before the input range is over
-                            additionalRanges.Add(new Range(intersection.Value.To, inputRange.To));
+                            additionalRanges.Add(new Range<long>(intersection.Value.To, inputRange.To));
                         }
                     }
                     
@@ -115,14 +114,14 @@ public class SeedFertilizer {
         }
     }
 
-    internal record AlmanacMapRange {
+    private record AlmanacMapRange {
         internal AlmanacMapRange(long[] destinationSourceLength) {
-            DestinationRange = new Range(destinationSourceLength[0], destinationSourceLength[0] + destinationSourceLength[2]);
-            SourceRange = new Range(destinationSourceLength[1], destinationSourceLength[1] + destinationSourceLength[2]);
+            DestinationRange = new Range<long>(destinationSourceLength[0], destinationSourceLength[0] + destinationSourceLength[2]);
+            SourceRange = new Range<long>(destinationSourceLength[1], destinationSourceLength[1] + destinationSourceLength[2]);
         }
 
-        public Range DestinationRange { get; }
-        public Range SourceRange { get; }
+        private Range<long> DestinationRange { get; }
+        private Range<long> SourceRange { get; }
 
         public long this[long key] {
             get {
@@ -134,7 +133,7 @@ public class SeedFertilizer {
             return SourceRange.Contains(value);
         }
 
-        public Range? Intersection(long rangeFrom, long rangeTo) {
+        public Range<long>? Intersection(long rangeFrom, long rangeTo) {
             var fromMax = Math.Max(rangeFrom, SourceRange.From);
             var toMin = Math.Min(rangeTo, SourceRange.To);
 
@@ -142,26 +141,10 @@ public class SeedFertilizer {
                 return null;
             }
 
-            return new Range(fromMax, toMin);
+            return new Range<long>(fromMax, toMin);
         }
 
         public override string ToString() => $"AlmanacMapRange: ({SourceRange}) -> ({DestinationRange})";
-    }
-
-    public readonly struct Range {
-        public Range(long from, long to) {
-            From = from;
-            To = to;
-        }
-
-        public long From { get; }
-        public long To { get; }
-
-        public bool Contains(long value) {
-            return From.IsSmallerOrEqualTo(value) && To.IsGreaterThan(value);
-        }
-        
-        public override string ToString() => $"Range: {From} -> {To}";
     }
 
     private const long SEED_TO_SOIL = 0;
@@ -173,13 +156,13 @@ public class SeedFertilizer {
     private const long HUMIDITY_TO_LOCATION = 6;
     private const long MAX_ALMANAC_MAPS = 7;
 
-    private Almanac _almanac;
+    private readonly Almanac _almanac;
 
     public SeedFertilizer(IEnumerable<string> input) {
         (_almanac, Seeds) = ParseAlmanac(input);
     }
 
-    public long[] Seeds { get; set; }
+    private long[] Seeds { get; }
 
     public static (Almanac, long[]) ParseAlmanac(IEnumerable<string> input) {
         var inputEnumerator = input.GetEnumerator();
@@ -218,8 +201,8 @@ public class SeedFertilizer {
 
     public long GetLowestSeedLocation() {
         var result = long.MaxValue;
-        for (var i = 0; i < Seeds.Length; i++) {
-            result = Math.Min(result, _almanac.GetSeedLocation(Seeds[i]));
+        foreach (var seed in Seeds) {
+            result = Math.Min(result, _almanac.GetSeedLocation(seed));
         }
 
         return result;

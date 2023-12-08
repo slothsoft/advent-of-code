@@ -33,7 +33,7 @@ public class ComparableExtensionsTest {
         where TValue : IComparable<TValue> {
         Assert.AreEqual(expected, value.IsSmallerThan(other));
     }
-    
+
     [Test]
     [TestCase(3, 7, false)]
     [TestCase(3, 3, true)]
@@ -62,5 +62,21 @@ public class ComparableExtensionsTest {
     public void IsSmallerOrEqualTo<TValue>(TValue value, TValue other, bool expected)
         where TValue : IComparable<TValue> {
         Assert.AreEqual(expected, value.IsSmallerOrEqualTo(other));
+    }
+
+    [Test]
+    [TestCase(5, 5, new[] {1})]
+    [TestCase(1, 7, new[] {2, 3, 4, 5, 6, 7})]
+    public void Max<TValue>(TValue value, TValue expectedMax, TValue[] others)
+        where TValue : IComparable<TValue> {
+        Assert.AreEqual(expectedMax, value.Max(others));
+    }
+    
+    [Test]
+    [TestCase(7, 5, new[] {5})]
+    [TestCase(1, 1, new[] {2, 3, 4, 5, 6, 7})]
+    public void Min<TValue>(TValue value, TValue expectedMin, TValue[] others)
+        where TValue : IComparable<TValue> {
+        Assert.AreEqual(expectedMin, value.Min(others));
     }
 }
