@@ -23,7 +23,6 @@ public static class ParseExtensions {
     /// <returns>result, e.g. 37</returns>
     
     public static long ExtractDigitsAsLong(this string input) {
-        // TODO: Test
         return long.Parse(input.ExtractDigitsAsString());
     }
     
@@ -108,7 +107,6 @@ public static class ParseExtensions {
     /// <param name="separator">what separates the ints</param>
     /// <returns>a  with X as the first coordinate and y as second</returns>
     public static long[] ParseLongArray(this string input, char separator = ' ') {
-        // TODO: Test
         if (input.Length == 0) {
             return Array.Empty<long>();
         }

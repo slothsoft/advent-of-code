@@ -14,6 +14,15 @@ public class ParseExtensionsTest {
     }
     
     [Test]
+    [TestCase(12L, "1abc2")]
+    [TestCase(38L, "pqr3stu8vwx")]
+    [TestCase(12345L, "a1b2c3d4e5f")]
+    [TestCase(7L, "treb7uchet")]
+    public void TestExtractDigitsAsLong(long expected, string input) {
+        Assert.AreEqual(expected, input.ExtractDigitsAsLong());
+    }
+    
+    [Test]
     [TestCase("12", "1abc2")]
     [TestCase("38", "pqr3stu8vwx")]
     [TestCase("12345", "a1b2c3d4e5f")]
@@ -111,5 +120,25 @@ public class ParseExtensionsTest {
         var someInts = input.ParseIntArray(separator);
 
         Assert.AreEqual(expected, someInts);
+    }
+    
+    [Test]
+    [TestCase("", new long[0])]
+    [TestCase("1 2 3", new[] {1L, 2, 3})]
+    [TestCase("  4 5 6  ", new[] {4L, 5, 6})]
+    public void TestParseLongArray(string input, long[] expected) {
+        var someLongs = input.ParseLongArray();
+
+        Assert.AreEqual(expected, someLongs);
+    }
+    
+    [Test]
+    [TestCase("", '.', new long[0])]
+    [TestCase("1_2_3", '_', new[] {1L, 2, 3})]
+    [TestCase("  4|5|6  ", '|', new[] {4L, 5, 6})]
+    public void TestParseLongArray(string input, char separator, long[] expected) {
+        var someLongs = input.ParseLongArray(separator);
+
+        Assert.AreEqual(expected, someLongs);
     }
 }

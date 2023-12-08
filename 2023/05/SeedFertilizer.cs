@@ -158,7 +158,7 @@ public class SeedFertilizer {
         public long To { get; }
 
         public bool Contains(long value) {
-            return value.CompareTo(From) >= 0 && value.CompareTo(To) < 0;
+            return From.IsSmallerOrEqualTo(value) && To.IsGreaterThan(value);
         }
         
         public override string ToString() => $"Range: {From} -> {To}";
