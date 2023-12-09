@@ -1,6 +1,7 @@
 # Advent of Code
 
-This is my try in solving the [Advent of Code](https://adventofcode.com) challenges.
+This is my try in solving the [Advent of Code](https://adventofcode.com) challenges. Note that 
+[puzzle inputs](https://www.reddit.com/r/adventofcode/wiki/faqs/copyright/inputs/) should not be shared.
 
 Some of the challenges where done in a [JavaScript simulation](https://slothsoft.github.io/advent-of-code/).
 

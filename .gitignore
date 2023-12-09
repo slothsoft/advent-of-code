@@ -13,5 +13,8 @@ AdventOfCode.sln.*
 2000*/
 Calendar/environment.json
 
+# input files should not be committet: https://www.reddit.com/r/adventofcode/wiki/faqs/copyright/inputs/
+**/input.txt
+
 # Visual Studio
 .vs/
