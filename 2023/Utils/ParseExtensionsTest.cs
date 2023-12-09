@@ -106,6 +106,7 @@ public class ParseExtensionsTest {
     [TestCase("", new int[0])]
     [TestCase("1 2 3", new[] {1, 2, 3})]
     [TestCase("  4 5 6  ", new[] {4, 5, 6})]
+    [TestCase("  -7 -8 -9  ",  new[] {-7, -8, -9})]
     public void TestParseIntArray(string input, int[] expected) {
         var someInts = input.ParseIntArray();
 
@@ -116,7 +117,7 @@ public class ParseExtensionsTest {
     [TestCase("", '.', new int[0])]
     [TestCase("1_2_3", '_', new[] {1, 2, 3})]
     [TestCase("  4|5|6  ", '|', new[] {4, 5, 6})]
-    public void TestParseIntArray(string input, char separator, int[] expected) {
+    public void TestParseIntArrayWithSeparator(string input, char separator, int[] expected) {
         var someInts = input.ParseIntArray(separator);
 
         Assert.AreEqual(expected, someInts);
@@ -126,6 +127,7 @@ public class ParseExtensionsTest {
     [TestCase("", new long[0])]
     [TestCase("1 2 3", new[] {1L, 2, 3})]
     [TestCase("  4 5 6  ", new[] {4L, 5, 6})]
+    [TestCase("  -7 -8 -9  ", new[] {-7L, -8, -9})]
     public void TestParseLongArray(string input, long[] expected) {
         var someLongs = input.ParseLongArray();
 
@@ -136,7 +138,7 @@ public class ParseExtensionsTest {
     [TestCase("", '.', new long[0])]
     [TestCase("1_2_3", '_', new[] {1L, 2, 3})]
     [TestCase("  4|5|6  ", '|', new[] {4L, 5, 6})]
-    public void TestParseLongArray(string input, char separator, long[] expected) {
+    public void TestParseLongArrayWithSeparator(string input, char separator, long[] expected) {
         var someLongs = input.ParseLongArray(separator);
 
         Assert.AreEqual(expected, someLongs);

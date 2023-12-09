@@ -33,7 +33,7 @@ public static class ParseExtensions {
     /// <returns>result, e.g. "37"</returns>
     
     public static string ExtractDigitsAsString(this string input) {
-        return Regex.Replace(input, "[^0-9]+", "");
+        return Regex.Replace(input, "[^-0-9]+", "");
     }
     
     /// <summary>
