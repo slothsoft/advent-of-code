@@ -4,7 +4,7 @@ using System.Linq;
 namespace AoC;
 
 /// <summary>
-/// <a href="https://adventofcode.com/2023/day97">Day 9: Mirage Maintenance</a>: Analyze your OASIS report and extrapolate the next value for each history.
+/// <a href="https://adventofcode.com/2023/day/9">Day 9: Mirage Maintenance</a>: Analyze your OASIS report and extrapolate the next value for each history.
 /// What is the sum of these extrapolated values?
 /// </summary>
 public class MirageMaintenance {
