@@ -14,7 +14,7 @@ public class HotSpringsTest {
     [TestCase("????.######..#####.", new[] {1, 6, 5}, 4)]
     [TestCase("?###????????", new[] {3, 2, 1}, 10)]
     public void Example1_CalculatePossibleArrangementsCountManyUnknown(string input, int[] groups, int expectedCount) {
-        Assert.AreEqual(expectedCount, HotSprings.CalculatePossibleArrangementsCount(input, groups, new Dictionary<string, long>()));
+        Assert.AreEqual(expectedCount, HotSprings.CalculatePossibleArrangementsCount(input, new List<int>(groups), new Dictionary<string, long>()));
     }
 
     [Test]
@@ -81,6 +81,7 @@ public class HotSpringsTest {
         var example = new HotSprings(File.ReadAllLines(@"12\input.txt"));
         example.Unfold(5);
 
-        Assert.AreEqual(525152, example.CalculatePossibleArrangementsCount());
+        // 1193780037 for row 2
+        Assert.AreEqual(18093821750095L, example.CalculatePossibleArrangementsCount());
     }
 }
