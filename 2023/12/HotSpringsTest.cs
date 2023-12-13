@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
@@ -6,44 +7,6 @@ namespace AoC;
 
 public class HotSpringsTest {
     [Test]
-    [TestCase("#.#.###", new[] {1, 1, 3})]
-    [TestCase(".#...#....###.", new[] {1, 1, 3})]
-    [TestCase(".#.###.#.######", new[] {1, 3, 1, 6})]
-    [TestCase("####.#...#...", new[] {4, 1, 1})]
-    [TestCase("#....######..#####.", new[] {1, 6, 5})]
-    [TestCase(".###.##....#", new[] {3, 2, 1})]
-    public void Example1_CalculateGroups(string input, int[] expectedGroups) {
-        Assert.AreEqual(expectedGroups, HotSprings.CalculateGroups(input));
-    }
-
-    [Test]
-    [TestCase("#.#.###", new[] {1, 1, 3})]
-    [TestCase(".#...#....###.", new[] {1, 1, 3})]
-    [TestCase(".#.###.#.######", new[] {1, 3, 1, 6})]
-    [TestCase("####.#...#...", new[] {4, 1, 1})]
-    [TestCase("#....######..#####.", new[] {1, 6, 5})]
-    [TestCase(".###.##....#", new[] {3, 2, 1})]
-    public void Example1_CalculatePossibleArrangementsNoUnknown(string input, int[] groups) {
-        Assert.AreEqual(input, HotSprings.CalculatePossibleArrangements(input, groups).Single());
-    }
-
-    [Test]
-    [TestCase("?###????????", new[] {3, 2, 1},
-        ".###.##.#...",
-        ".###.##..#..",
-        ".###.##...#.",
-        ".###.##....#",
-        ".###..##.#..",
-        ".###..##..#.",
-        ".###..##...#",
-        ".###...##.#.",
-        ".###...##..#",
-        ".###....##.#")]
-    public void Example1_CalculatePossibleArrangementsManyUnknown(string input, int[] groups, params string[] expectedArrangements) {
-        Assert.AreEqual(expectedArrangements.OrderBy(s => s), HotSprings.CalculatePossibleArrangements(input, groups).OrderBy(s => s));
-    }
-
-    [Test]
     [TestCase("???.###", new[] {1, 1, 3}, 1)]
     [TestCase(".??..??...?##.", new[] {1, 1, 3}, 4)]
     [TestCase("?#?#?#?#?#?#?#?", new[] {1, 3, 1, 6}, 1)]
@@ -51,7 +14,7 @@ public class HotSpringsTest {
     [TestCase("????.######..#####.", new[] {1, 6, 5}, 4)]
     [TestCase("?###????????", new[] {3, 2, 1}, 10)]
     public void Example1_CalculatePossibleArrangementsCountManyUnknown(string input, int[] groups, int expectedCount) {
-        Assert.AreEqual(expectedCount, HotSprings.CalculatePossibleArrangements(input, groups).Count());
+        Assert.AreEqual(expectedCount, HotSprings.CalculatePossibleArrangementsCount(input, groups, new Dictionary<string, long>()));
     }
 
     [Test]
@@ -82,6 +45,29 @@ public class HotSpringsTest {
         Assert.AreEqual(possibleArrangementCount, example.CalculatePossibleArrangementsCount());
     }
 
+    // Note: I couldn't find the bug in my algorithm, so I had to try to find test cases that didn't work
+    [Test]
+    [TestCase(".?????...? 1,1,1", 7)]
+    [TestCase("#????...? 1,1,1", 4)]
+    [TestCase(".????...? 1,1,1", 3)]
+    [TestCase("#???...? 1,1,1", 2)]
+    [TestCase("#??...? 1,1,1", 1)]
+    [TestCase(".???...? 1,1,1", 1)]
+    [TestCase("#?...? 1,1,1", 0)]
+    [TestCase(".??...? 1,1,1", 0)]
+    [TestCase("#????????.#?#?????? 2,1,1,5,1", 36)]
+    [TestCase("???##?###????? 1,2,3,4", 2)]
+    [TestCase("?#?????##????#?? 1,9", 3)]
+    [TestCase("?.?.??#?...????? 1,2,1", 28)]
+    [TestCase(".#.#???..??#???#?? 1,1,1,1,1,4", 4)]
+    [TestCase("?#??#??#..#?#???. 1,4,1,1,2", 1)]
+    [TestCase("??????##????# 1,7,2", 3)]
+    public void Example2_CalculatePossibleArrangementsCount(string input, int expectedCount) {
+        var example = new HotSprings(new[] { input });
+
+        Assert.AreEqual(expectedCount, example.CalculatePossibleArrangementsCount());
+    }
+    
     [Test]
     public void Example2() {
         var example = new HotSprings(File.ReadAllLines(@"12\example.txt"));
