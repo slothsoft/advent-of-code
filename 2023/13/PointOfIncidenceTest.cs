@@ -4,7 +4,6 @@ using NUnit.Framework;
 namespace AoC;
 
 public class PointOfIncidenceTest {
-
     [Test]
     [TestCase(@"13\example.txt", 405)]
     [TestCase(@"13\example1.txt", 5)]
@@ -28,10 +27,23 @@ public class PointOfIncidenceTest {
     }
 
     [Test]
-    public void Example2() {
+    [TestCase(@"13\example.txt", 400)]
+    [TestCase(@"13\example1.txt", 300)]
+    [TestCase(@"13\example2.txt", 100)]
+    public void Example2(string fileName, int expectedMirrorNumber) {
+        var example = new PointOfIncidence(File.ReadAllLines(fileName)) {
+            AllowedDifferences = 1
+        };
+
+        Assert.AreEqual(expectedMirrorNumber, example.CalculateMirrorNumber());
     }
 
     [Test]
     public void Puzzle2() {
+        var example = new PointOfIncidence(File.ReadAllLines(@"13\input.txt")) {
+            AllowedDifferences = 1
+        };
+
+        Assert.AreEqual(31954, example.CalculateMirrorNumber());
     }
 }

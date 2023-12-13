@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.VisualBasic.CompilerServices;
 
 namespace AoC;
 
@@ -15,6 +16,8 @@ public class PointOfIncidence {
         _patterns = ParsePatterns(input);
     }
 
+    public int AllowedDifferences { get; set; }
+    
     private static IList<string[]> ParsePatterns(IEnumerable<string> input) {
         var result = new List<string[]>();
         var inputAsArray = input.ToArray();
@@ -55,20 +58,8 @@ public class PointOfIncidence {
 
     private long CalculateColumnMirrorNumber(string[] pattern) {
         for (var i = 0; i < pattern[0].Length - 1; i++) {
-            if (AreColumnsEqual(pattern, i, i + 1)) {
-                for (var j = 1; j < pattern[0].Length; j++) {
-                    var topIndex = i - j;
-                    var bottomIndex = i + j + 1;
-                    if (topIndex < 0 || bottomIndex >= pattern[0].Length) {
-                        // we have arrived at the end of the end of the pattern, so it mirrors
-                        return Math.Max(i + 1, j);
-                    }
-
-                    if (!AreColumnsEqual(pattern, topIndex, bottomIndex)) {
-                        // it does not mirror after all 
-                        break;
-                    }
-                }
+            if (GetColumnsDifferences(pattern, i) == AllowedDifferences) {
+                return i + 1;
             }
         }
 
@@ -76,36 +67,78 @@ public class PointOfIncidence {
         return 0;
     }
 
-    private static bool AreColumnsEqual(string[] pattern, int col1, int col2) {
+    private int GetColumnsDifferences(string[] pattern, int leftColumn) {
+        var differences = 0;
+        
         for (var i = 0; i < pattern.Length; i++) {
-            if (!pattern[i][col1].Equals(pattern[i][col2])) {
-                return false;
+            if (!pattern[i][leftColumn].Equals(pattern[i][leftColumn + 1])) {
+                differences++;
             }
         }
 
-        return true;
+        if (differences > AllowedDifferences + 1) {
+            return differences;
+        }
+
+        for (var j = 1; j < pattern[0].Length; j++) {
+            var leftIndex = leftColumn - j;
+            var rightIndex = leftColumn + j + 1;
+            if (leftIndex < 0 || rightIndex >= pattern[0].Length) {
+                // we have arrived at the end of the end of the pattern, so it mirrors with x differences
+                break;
+            }
+
+            for (var i = 0; i < pattern.Length; i++) {
+                if (!pattern[i][leftIndex].Equals(pattern[i][rightIndex])) {
+                    differences++;
+                }
+            }
+        }
+
+        return differences;
     }
 
-    private int CalculateRowMirrorNumber(string[] pattern) {
+    private long CalculateRowMirrorNumber(string[] pattern) {
         for (var i = 0; i < pattern.Length - 1; i++) {
-            if (pattern[i].Equals(pattern[i + 1])) {
-                for (var j = 1; j < pattern.Length; j++) {
-                    var topIndex = i - j;
-                    var bottomIndex = i + j + 1;
-                    if (topIndex < 0 || bottomIndex >= pattern.Length) {
-                        // we have arrived at the end of the end of the pattern, so it mirrors
-                        return Math.Max(i + 1, j);
-                    }
-
-                    if (!pattern[topIndex].Equals(pattern[bottomIndex])) {
-                        // it does not mirror after all 
-                        break;
-                    }
-                }
+            if (GetRowsDifferences(pattern, i) == AllowedDifferences) {
+                return i + 1;
             }
         }
 
         // we found no mirror axis
         return 0;
     }
+
+    private int GetRowsDifferences(string[] pattern, int topRow) {
+        var differences = 0;
+        
+        for (var i = 0; i < pattern[topRow].Length; i++) {
+            if (!pattern[topRow][i].Equals(pattern[topRow + 1][i])) {
+                differences++;
+            }
+        }
+
+        if (differences > AllowedDifferences + 1) {
+            return differences;
+        }
+        
+        for (var j = 1; j < pattern.Length; j++) {
+            var topIndex = topRow - j;
+            var bottomIndex = topRow + j + 1;
+            if (topIndex < 0 || bottomIndex >= pattern.Length) {
+                // we have arrived at the end of the end of the pattern, so it mirrors with x differences
+                break;
+            }
+
+            for (var i = 0; i < pattern[topRow].Length; i++) {
+                if (!pattern[topIndex][i].Equals(pattern[bottomIndex][i])) {
+                    differences++;
+                }
+            }
+        }
+
+        return differences;
+    }
+
+
 }
