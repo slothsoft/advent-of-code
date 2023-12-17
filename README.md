@@ -14,7 +14,7 @@ Some of the challenges where done in a [JavaScript simulation](https://slothsoft
 ## To-Do-List
 
 - move algorithms somewhere safe
-    - Dijkstra is in 2019-20 and 2021-15
+    - Dijkstra is in 2019-20 and 2021-15 and 2023-17
 
 <!-- STEFFI, DO NOT ADD STUFF HERE! USE README-raw.md!!! -->
 
@@ -35,6 +35,10 @@ Some of the challenges where done in a [JavaScript simulation](https://slothsoft
 <a href="./2023/11"><img src="./Calendar/Tiles/2023/11.svg" width="150px"></a>
 <a href="./2023/12"><img src="./Calendar/Tiles/2023/12.svg" width="150px"></a>
 <a href="./2023/13"><img src="./Calendar/Tiles/2023/13.svg" width="150px"></a>
+<a href="./2023/14"><img src="./Calendar/Tiles/2023/14.svg" width="150px"></a>
+<a href="./2023/15"><img src="./Calendar/Tiles/2023/15.svg" width="150px"></a>
+<a href="./2023/16"><img src="./Calendar/Tiles/2023/16.svg" width="150px"></a>
+<a href="./2023/17"><img src="./Calendar/Tiles/2023/17.svg" width="150px"></a>
 
 
 # 2022
