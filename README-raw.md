@@ -15,5 +15,6 @@ Some of the challenges where done in a [JavaScript simulation](https://slothsoft
 
 - move algorithms somewhere safe
     - Dijkstra is in 2019-20 and 2021-15 and 2023-17
+    - Direction is EVERYWHERE
 
 <!-- CALENDAR-TILES -->
