@@ -1,7 +1,7 @@
 using System.IO;
 using NUnit.Framework;
 
-namespace AoC;
+namespace AoC.day9;
 
 public class MirageMaintenanceTest {
     [Test]

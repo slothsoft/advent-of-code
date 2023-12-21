@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AoC;
+namespace AoC.day9;
 
 /// <summary>
 /// <a href="https://adventofcode.com/2023/day/9">Day 9: Mirage Maintenance</a>: Analyze your OASIS report and extrapolate the next value for each history.
@@ -14,7 +14,7 @@ public class MirageMaintenance {
     public MirageMaintenance(IEnumerable<string> input) {
         _inputArrays = input.Select(i => i.ParseLongArray()).ToList();
     }
-
+    
     public long SumExtrapolatedValues() {
         return _inputArrays.Select(Extrapolate).Sum();
     }

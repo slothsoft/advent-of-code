@@ -23,21 +23,21 @@ public class StepCounterTest {
     [Test]
     [TestCase(6, 16)]
     [TestCase(10, 50)]
-    [TestCase(50, 1594)]
-    [TestCase(100, 6536)]
-    [TestCase(500, 167004)]
-    [TestCase(1000, 668697)]
-    [TestCase(5000, 16733044)]
-    public void Example2(int steps, long expectedCount) {
-        var example = new StepCounter(File.ReadAllLines(@"21\example.txt"), true);
+    [TestCase(50, 1_594)]
+    [TestCase(100, 6_536)]
+    [TestCase(500, 167_004)]
+    // [TestCase(1000, 668_697)] // too high for the naive algorithm
+    // [TestCase(5000, 16_733_044)]
+    public void Example2_CalculateReachablePlotsCount(int steps, long expectedCount) {
+        var example = new StepCounter(File.ReadAllLines(@"21\example.txt"));
         
-        Assert.AreEqual(expectedCount,  example.CalculateReachablePlotsCount(steps));   
+        Assert.AreEqual(expectedCount,  example.CalculateReachablePlotsCount(steps, true ));   
     }
-
+    
     [Test]
     public void Puzzle2() {
         var puzzle = new StepCounter(File.ReadAllLines(@"21\input.txt"));
         
-        Assert.AreEqual(7,  puzzle.CalculateReachablePlotsCount(26501365));  
+        Assert.AreEqual(610_321_885_082_978L,  puzzle.CalculateReachablePlotsCountViaAlgorithm(26_501_365));  
     }
 }
