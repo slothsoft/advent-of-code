@@ -38,12 +38,14 @@ public class PulsePropagation {
 
     public record ConjunctionModule(string DisplayName, params string[] TargetModules) : IModule {
         public Signal LastSignal { get; set; } = Signal.Low;
+        public bool WasEverHigh { get; private set; }
 
         public void ReceiveSignal(ModuleContext context, Signal inputSignal) {
             LastSignal = Signal.Low;
             foreach (var model in context.FetchInputFor(DisplayName)) {
                 if (model.LastSignal == Signal.Low) {
                     LastSignal = Signal.High;
+                    WasEverHigh = true;
                     break;
                 }
             }
@@ -160,16 +162,32 @@ public class PulsePropagation {
     }
 
     public long PushButtonUntilSand() {
-        long result = 0;
         var context = new ModuleContext(Modules);
+        
+        // only one module signals to the RX module
+        var feedingIntoRx = context.FetchInputFor(MODULE_RX).OfType<ConjunctionModule>().Single();
 
+        // multiple modules signal to the above one
+        var signaler = context.FetchInputFor(feedingIntoRx.DisplayName).OfType<ConjunctionModule>().ToArray();
+        var signalerWithHighLength = new Dictionary<string, long>();
+        var buttonsPressed = 0L;
+        
         do {
-            result++;
-
+            // push the button
             context.SendSignal(MODULE_BROADCASTER, Signal.Low);
             context.ExecuteSignalPipeline();
-        } while (Modules[MODULE_RX].LastSignal != Signal.Low);
+            buttonsPressed++;
             
-        return result;
+            // now check if any signaler is now High
+            foreach (var conjunctionModule in signaler.Where(s => !signalerWithHighLength.ContainsKey(s.DisplayName))) {
+                if (conjunctionModule.WasEverHigh) {
+                    signalerWithHighLength.Add(conjunctionModule.DisplayName, buttonsPressed);
+                }
+            }
+            
+        } while (signalerWithHighLength.Count != signaler.Length);
+            
+        // now just do the naive thing and calculate the product and hope for the best
+        return signalerWithHighLength.Values.Aggregate((a, b) => a * b);
     }
 }

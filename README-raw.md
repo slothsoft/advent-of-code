@@ -17,5 +17,6 @@ Some of the challenges where done in a [JavaScript simulation](https://slothsoft
     - Dijkstra is in 2019-20 and 2021-15 and 2023-17
     - Direction is EVERYWHERE
     - Stringify of the parsed matrixes (maybe extract matrixes?)
+    - how to calculate quadratic function: 2023-21
 
 <!-- CALENDAR-TILES -->

@@ -149,6 +149,6 @@ public class PulsePropagationTest {
     public void Puzzle2() {
         var puzzle = new PulsePropagation(File.ReadAllLines(@"20\input.txt"));
 
-        Assert.AreEqual(788_081_152, puzzle.PushButtonUntilSand());
+        Assert.AreEqual(22_460_201_134_4203, puzzle.PushButtonUntilSand());
     }
 }
