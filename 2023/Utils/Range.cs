@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace AoC;
 
@@ -35,6 +36,16 @@ public readonly struct Range<TValue>
         }
             
         return new Range<TValue>(fromMax, toMin);
+    }
+    
+    public IEnumerable<Range<TValue>> SplitAt(TValue value) {
+        if (!Contains(value)) {
+            // value is not in this range
+            yield return this;
+        } else {
+            yield return new Range<TValue>(From, value);
+            yield return new Range<TValue>(value, To);
+        }
     }
     
     public override string ToString() => $"Range: {From} -> {To}";

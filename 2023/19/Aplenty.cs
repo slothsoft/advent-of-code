@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace AoC;
+namespace AoC.day19;
 
 /// <summary>
 /// <a href="https://adventofcode.com/2023/day/19">Day 19: Aplenty</a>:
@@ -22,19 +21,83 @@ public class Aplenty {
 
             throw new ArgumentException($"Workflow {DisplayName} is broken - no rule fits for {part}");
         }
+
+        public IEnumerable<(IDictionary<string, Range<long>> Range, string GoTo)> RatePart(IDictionary<string, Range<long>> ranges) {
+            var currentRanges = ranges;
+            foreach (var rule in Rules) {
+                var rangeSplit = rule.RatePart(currentRanges);
+                if (rangeSplit.TrueRange != null) {
+                    yield return (rangeSplit.TrueRange, rule.GoTo);
+                }
+
+                if (rangeSplit.FalseRange != null) {
+                    currentRanges = rangeSplit.FalseRange;
+                } else {
+                    // we have no range left for coming rules D: 
+                    break;
+                }
+            }
+        }
+
+        // cq{a<289:R,a<499:A,m>826:A,A}
+        public override string ToString() => DisplayName + "{" + string.Join(", ", Rules.Select(r => r.ToString()) + "}");
     }
 
     public interface IRule {
         string GoTo { get; }
         bool RatePart(IDictionary<string, int> part);
+        (IDictionary<string, Range<long>>? TrueRange, IDictionary<string, Range<long>>? FalseRange) RatePart(IDictionary<string, Range<long>> ranges);
     }
 
     public record IfRule(string VariableName, Operator Operator, int Value, string GoTo) : IRule {
         public bool RatePart(IDictionary<string, int> part) => Operator.ApplyTo(part[VariableName], Value);
+
+        public (IDictionary<string, Range<long>>? TrueRange, IDictionary<string, Range<long>>? FalseRange) RatePart(IDictionary<string, Range<long>> ranges) {
+            if (Operator.lessThan.Equals(Operator)) {
+                if (ranges[VariableName].Contains(Value)) {
+                    // simple split
+                    var trueRange = ranges.ToDictionary(r => r.Key, r => r.Value);
+                    trueRange[VariableName] = new Range<long>(ranges[VariableName].From, Value - 1);
+                    var falseRange = ranges.ToDictionary(r => r.Key, r => r.Value);
+                    falseRange[VariableName] = new Range<long>(Value, ranges[VariableName].To);
+                    return (trueRange, falseRange);
+                }
+
+                // the value is either completely before the range or completely after
+                if (ranges[VariableName].To < Value) {
+                    return (ranges, null);
+                }
+
+                return (null, ranges);
+            }
+
+            if (ranges[VariableName].Contains(Value)) {
+                // simple split
+                var falseRange = ranges.ToDictionary(r => r.Key, r => r.Value);
+                falseRange[VariableName] = new Range<long>(ranges[VariableName].From, Value);
+                var trueRange = ranges.ToDictionary(r => r.Key, r => r.Value);
+                trueRange[VariableName] = new Range<long>(Value + 1, ranges[VariableName].To);
+                return (trueRange, falseRange);
+            }
+
+            // the value is either completely before the range or completely after
+            if (ranges[VariableName].From > Value) {
+                return (ranges, null);
+            }
+
+            return (null, ranges);
+        }
+
+        public override string ToString() => VariableName + " " + Operator.DisplayChar + " " + Value;
     }
 
     public record GoToRule(string GoTo) : IRule {
         public bool RatePart(IDictionary<string, int> part) => true;
+
+        public (IDictionary<string, Range<long>>? TrueRange, IDictionary<string, Range<long>>? FalseRange) RatePart(IDictionary<string, Range<long>> ranges) =>
+            (ranges, null);
+
+        public override string ToString() => GoTo;
     }
 
     public struct Operator {
@@ -151,60 +214,35 @@ public class Aplenty {
         return result;
     }
 
+    // if we split all the ranges for all the rules we get about 250 ranges per letter
+    // which makes still 3_906_250_000 parts to check
+    // -> so only split ranges if necessary
+
     public long CalculateAcceptedCombinations() {
-        var variableBorders = CalculateVariableBorders();
+        var ranges = Parts.SelectMany(p => p.Keys).Distinct().ToDictionary(p => p, _ => new Range<long>(1, 4000));
+        return RatePartForRanges(ranges, WORKFLOW_START);
+    }
 
-        var result = 0L;
-        var lastX = 1L;
-
-        // i have the feeling this loop-de-loop could be done much nicer / better / more generic
-        foreach (var x in variableBorders[VARIABLE_X]) {
-            var lastM = 1L;
-            foreach (var m in variableBorders[VARIABLE_M]) {
-                var lastA = 1L;
-                foreach (var a in variableBorders[VARIABLE_A]) {
-                    var lastS = 1L;
-                    foreach (var s in variableBorders[VARIABLE_S]) {
-                        if (RatePart(new Dictionary<string, int> {{VARIABLE_X, x}, {VARIABLE_M, m}, {VARIABLE_A, a}, {VARIABLE_S, s}})) {
-                            // so now this part since the last variables is accepted, so add the possibilities to result
-                            result += (x - lastX) * (m - lastM) * (a - lastA) * (s - lastS);
-                        }
-                        lastS = s;
-                    }
-
-                    lastA = a;
-                }
-
-                lastM = m;
-            }
-
-            lastX = x;
+    private long RatePartForRanges(IDictionary<string, Range<long>> ranges, string currentWorkflow) {
+        if (WORKFLOW_ACCEPTED.Equals(currentWorkflow)) {
+            return CalculatePartCount(ranges);
         }
 
-        foreach (var variableSortedByBorder in variableBorders) {
-            Console.WriteLine(variableSortedByBorder.Key + ": " + string.Join(", ", variableSortedByBorder.Value)
-            );
+        if (WORKFLOW_REJECTED.Equals(currentWorkflow)) {
+            return 0L;
+        }
+
+        var result = 0L;
+        var workflow = Workflows[currentWorkflow];
+        var newRangesToGoTo = workflow.RatePart(ranges);
+        foreach (var (newRanges, goTo) in newRangesToGoTo) {
+            result += RatePartForRanges(newRanges, goTo);
         }
 
         return result;
     }
 
-    private IDictionary<string, ISet<int>> CalculateVariableBorders(int min = 1, int max = 4000) {
-        var dictionary = new Dictionary<string, ISet<int>>();
-        foreach (var workflow in Workflows.Values) {
-            foreach (var rule in workflow.Rules) {
-                if (rule is IfRule ifRule) {
-                    if (!dictionary.ContainsKey(ifRule.VariableName)) {
-                        dictionary[ifRule.VariableName] = new SortedSet<int> {max};
-                    }
-
-                    // we add the value before the one that actually changes the result
-                    var lowerBorder = ifRule.Operator.DisplayChar == '>' ? ifRule.Value : ifRule.Value - 1;
-                    dictionary[ifRule.VariableName].Add(lowerBorder);
-                }
-            }
-        }
-
-        return dictionary;
+    internal static long CalculatePartCount(IDictionary<string, Range<long>> ranges) {
+        return ranges.Values.Select(r => r.To - r.From + 1).Aggregate((a, b) => a * b);
     }
 }

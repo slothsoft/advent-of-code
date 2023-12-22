@@ -119,4 +119,31 @@ public class RangeTest {
 
         Assert.AreEqual(expectedIntersection, actualIntersection);
     }
+    
+    [Test]
+    [TestCase(1, 5, 0)]
+    [TestCase(2L, 4L, 5L)]
+    [TestCase(2.0, 2.0, 2.0)]
+    public void Split_SingleResult<TValue>(TValue from, TValue to, TValue splitOn)
+        where TValue : IComparable<TValue> {
+        var range = new Range<TValue>(to, from);
+
+        var split = range.SplitAt(splitOn).ToArray();
+        Assert.AreEqual(1, split.Length);
+        Assert.AreEqual(range, split[0]);
+    }
+    
+    [Test]
+    [TestCase(1, 5, 3)]
+    [TestCase(2L, 4L, 3L)]
+    [TestCase(2.0, 3.0, 2.5)]
+    public void Split_MultipleResults<TValue>(TValue from, TValue to, TValue splitOn)
+        where TValue : IComparable<TValue> {
+        var range = new Range<TValue>(to, from);
+
+        var split = range.SplitAt(splitOn).ToArray();
+        Assert.AreEqual(2, split.Length);
+        Assert.AreEqual(new Range<TValue>(from, splitOn), split[0]);
+        Assert.AreEqual(new Range<TValue>(splitOn, to), split[1]);
+    }
 }
