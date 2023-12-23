@@ -20,14 +20,14 @@ public class ALongWalkTest {
 
     [Test]
     public void Example2() {
-        var example = new ALongWalk(File.ReadAllLines(@"23\example.txt"));
+        var example = new ALongWalk(File.ReadAllLines(@"23\example.txt"), true);
         
         Assert.AreEqual(154,  example.CalculateLongestHike());   
     }
 
     [Test]
     public void Puzzle2() {
-        var puzzle = new ALongWalk(File.ReadAllLines(@"23\input.txt"));
+        var puzzle = new ALongWalk(File.ReadAllLines(@"23\input.txt"), true);
         
         Assert.AreEqual(2358,  puzzle.CalculateLongestHike());  
     }
