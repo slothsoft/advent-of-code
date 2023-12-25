@@ -19,6 +19,7 @@ Some of the challenges where done in a [JavaScript simulation](https://slothsoft
     - Stringify of the parsed matrixes (maybe extract matrixes?)
     - how to calculate quadratic function: 2023-21
     - `SnowverloadExtensions` from 2023-25
+    - intersecting 3D lines: 2023-24
 
 <!-- STEFFI, DO NOT ADD STUFF HERE! USE README-raw.md!!! -->
 
@@ -49,6 +50,7 @@ Some of the challenges where done in a [JavaScript simulation](https://slothsoft
 <a href="./2023/21"><img src="./Calendar/Tiles/2023/21.svg" width="150px"></a>
 <a href="./2023/22"><img src="./Calendar/Tiles/2023/22.svg" width="150px"></a>
 <a href="./2023/23"><img src="./Calendar/Tiles/2023/23.svg" width="150px"></a>
+<a href="./2023/24"><img src="./Calendar/Tiles/2023/24.svg" width="150px"></a>
 <a href="./2023/25"><img src="./Calendar/Tiles/2023/25.svg" width="150px"></a>
 
 
