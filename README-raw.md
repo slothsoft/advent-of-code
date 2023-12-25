@@ -18,5 +18,6 @@ Some of the challenges where done in a [JavaScript simulation](https://slothsoft
     - Direction is EVERYWHERE
     - Stringify of the parsed matrixes (maybe extract matrixes?)
     - how to calculate quadratic function: 2023-21
+    - `SnowverloadExtensions` from 2023-25
 
 <!-- CALENDAR-TILES -->

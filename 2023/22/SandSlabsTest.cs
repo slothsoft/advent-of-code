@@ -74,8 +74,8 @@ public class SandSlabsTest {
 
     private static IEnumerable<TestCaseData> CreateIntersectionTestSource() {
         // this is always the same test case of the 2D array 10|5-25|15 intersecting 20|10-30|25 in 20|10-25|15
-        return SandSlabs.Coordinates.SelectMany(coordinate => {
-            var otherCoordinates = SandSlabs.Coordinates.Where(c => c != coordinate).ToArray();
+        return SandSlabs.coordinates.SelectMany(coordinate => {
+            var otherCoordinates = SandSlabs.coordinates.Where(c => c != coordinate).ToArray();
             
             var rect1 = new List<Point[]>();
 
@@ -133,6 +133,6 @@ public class SandSlabsTest {
     public void Puzzle2() {
         var puzzle = new SandSlabs(File.ReadAllLines(@"22\input.txt"));
         
-        Assert.AreEqual(7,  puzzle.CalculateEntireFallenBricks());  
+        Assert.AreEqual(86556,  puzzle.CalculateEntireFallenBricks());  
     }
 }
