@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
 using NUnit.Framework;
 using Point2D = AoC.day24.NeverTellMeTheOdds.Point2D;
 using Point3D = AoC.day24.NeverTellMeTheOdds.Point3D;
@@ -78,7 +80,18 @@ public class NeverTellMeTheOddsTest {
     public void Example2() {
         var example = new NeverTellMeTheOdds(File.ReadAllLines(@"24\example.txt"));
 
-        // Assert.AreEqual(7, example.CalculateIntersections());
+        var rockThrow = example.CalculateRockThrow();
+        Assert.NotNull(rockThrow);
+        
+        Assert.AreEqual(24, rockThrow!.ZeroCoordinates.X);      
+        Assert.AreEqual(13, rockThrow.ZeroCoordinates.Y);
+        Assert.AreEqual(10, rockThrow.ZeroCoordinates.Z);    
+        
+        Assert.AreEqual(-3, rockThrow.VelocityCoordinates.X); 
+        Assert.AreEqual(1, rockThrow.VelocityCoordinates.Y); 
+        Assert.AreEqual(2, rockThrow.VelocityCoordinates.Z); 
+        
+        Assert.AreEqual(47, rockThrow.ZeroCoordinates.GetCoordinates().Select(rockThrow.ZeroCoordinates.Get).Sum());    
     }
 
     [Test]
