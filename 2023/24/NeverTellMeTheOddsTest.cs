@@ -96,8 +96,11 @@ public class NeverTellMeTheOddsTest {
 
     [Test]
     public void Puzzle2() {
-        var puzzle = new NeverTellMeTheOdds(File.ReadAllLines(@"24\input.txt"));
-
-        // Assert.AreEqual(7, puzzle.CalculateIntersections());
+        var puzzle = new NeverTellMeTheOdds(File.ReadAllLines(@"24\input2.txt"));
+        
+        var rockThrow = puzzle.CalculateRockThrow();
+        Assert.NotNull(rockThrow);
+        
+        Assert.AreEqual(557743507346379, rockThrow!.ZeroCoordinates.GetCoordinates().Select(rockThrow.ZeroCoordinates.Get).Sum());    
     }
 }

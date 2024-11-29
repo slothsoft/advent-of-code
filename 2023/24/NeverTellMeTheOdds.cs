@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using AoC.day25;
+using NUnit.Framework;
 
 namespace AoC.day24;
 
@@ -318,118 +319,157 @@ public class NeverTellMeTheOdds {
         // A - B          (VelocityStone * (s - r)) = (ZeroHail0 - ZeroHail1) + (VelocityHail * (s - r))
         // -VelocityHail    (ZeroHail0 - ZeroHail1) = (VelocityStone - VelocityHail) * (s - r)
         // [needed]                                          X                          X   X
-        // × (VelocityStone - VelocityHail)       0 = (ZeroHail0 - ZeroHail1) × (VelocityStone - VelocityHail)
-        // OR with different VelocityHails
-        //                                        0 = (ZeroHail0 - ZeroHail1) × (VelocityStone - (VelocityHail0 - VelocityHail1))
-        // and this also means that (ZeroHail0 - ZeroHail1) and (VelocityStone - (VelocityHail0 - VelocityHail1)) are the same vector
-        // which means that the coordinates of one are the same as the others multiplied by m (with m = s - r see above)
-        //
-        // Use https://www.wolframalpha.com/widgets/view.jsp?id=54af80f0c43c8717d710f39be0642aaa and the first two hails of example:
-        // - (19 - 18) = m * (x - (-2 + 1))
-        // - (13 - 19) = m * (y - (1 + 1))
-        // - (30 - 22) = m * (z - (-2 + 2))
-        // => m = -1, x = -2, y = 8, z = -8
-        // OR m =  1, x =  0, y =-4, z =  8
-        //
-        // soooo....   (ZeroHail0 - ZeroHail1) = m * (VelocityStone - (VelocityHail0 - VelocityHail1))
-        //               ZeroHail0 - ZeroHail1 = m * VelocityStone - m * VelocityHail0 + m * VelocityHail1      | + m * VelocityHail0 - m * VelocityHail1
-        // m * (VelocityHail0 - VelocityHail1) + ZeroHail0 - ZeroHail1 = m * VelocityStone                      | /m
-        // VelocityHail0 - VelocityHail1 + (ZeroHail0 - ZeroHail1) / m = VelocityStone
+        // m = s - r        (ZeroHail0 - ZeroHail1) = m * (VelocityStone - VelocityHail) 
+        // /m + VelocityHail          VelocityStone = (ZeroHail0 - ZeroHail1) / m + VelocityHail 
         //
         // This last equation can only be solved for integer VelocityStone if m is an divisor of (ZeroHail0 - ZeroHail1) (or the negative of these divisors)
         // If we use enough additional hails we should be able to find m pretty quickly
+        // (m = 0 might also work, but then two hailstorms would intersect with the stone at the same time)
+        // => does NOT work, because only ONE coordinate matches
+        //
+        // C      (ZeroStone) + (VelocityStone * s) = (ZeroHail0) + (VelocityHail0 * s)                                | - (VelocityStone * s) - (ZeroHail0)
+        //                (ZeroStone) - (ZeroHail0) = (VelocityHail0 * s) - (VelocityStone * s)      
+        //                    ZeroStone - ZeroHail0 = s * (VelocityHail0 - VelocityStone)                              | / (VelocityHail0 - VelocityStone)
+        // C(X)                                   s = (ZeroStoneX - ZeroHail0X) / (VelocityHail0X - VelocityStoneX)         
+        // C(Y)                                   s = (ZeroStoneY - ZeroHail0Y) / (VelocityHail0Y - VelocityStoneY)           
+        // C(X) - C(Y)                            0 = (ZeroStoneX - ZeroHail0X) / (VelocityHail0X - VelocityStoneX) - (ZeroStoneY - ZeroHail0Y) / (VelocityHail0Y - VelocityStoneY)
+        //                                        0 = (VelocityHail0Y - VelocityStoneY) * (ZeroStoneX - ZeroHail0X) - (VelocityHail0X - VelocityStoneX) * (ZeroStoneY - ZeroHail0Y)
+        // [needed]                                                            X               X                                                X               X  
+        //                                        0 = (VelocityHail0Y - VelocityStoneY) * (ZeroStoneX - ZeroHail0X) - (VelocityHail0X - VelocityStoneX) * (ZeroStoneY - ZeroHail0Y)
+        //                                        0 = VelocityHail0Y * (ZeroStoneX - ZeroHail0X) - VelocityStoneY * (ZeroStoneX - ZeroHail0X)  - VelocityHail0X * (ZeroStoneY - ZeroHail0Y) + VelocityStoneX * (ZeroStoneY - ZeroHail0Y)
+        // WOPRKS                                 0 = VelocityHail0Y * (ZeroStoneX - ZeroHail0X)                - VelocityStoneY * (ZeroStoneX - ZeroHail0X)                  - VelocityHail0X * (ZeroStoneY - ZeroHail0Y)                + VelocityStoneX * (ZeroStoneY - ZeroHail0Y)
+        // [needed below]                                                 v                                              v              v               v                                            v                                            v              v             v  
+        // E                                      0 = VelocityHail0Y * ZeroStoneX - VelocityHail0Y * ZeroHail0X - VelocityStoneY * ZeroStoneX + VelocityStoneY *  ZeroHail0X  - VelocityHail0X * ZeroStoneY + VelocityHail0X * ZeroHail0Y + VelocityStoneX * ZeroStoneY - VelocityStoneX * ZeroHail0Y
+        // F                                      0 = VelocityHail1Y * ZeroStoneX - VelocityHail1Y * ZeroHail1X - VelocityStoneY * ZeroStoneX + VelocityStoneY *  ZeroHail1X  - VelocityHail1X * ZeroStoneY + VelocityHail1X * ZeroHail1Y + VelocityStoneX * ZeroStoneY - VelocityStoneX * ZeroHail1Y
+        // E - F                                  0 = ZeroStoneX (VelocityHail0Y - VelocityHail1Y)                               + VelocityStoneY * (ZeroHail0X - ZeroHail1X) - ZeroStoneY * (VelocityHail0X - VelocityHail1X)                           - VelocityStoneX * (ZeroHail0Y - ZeroHail1Y)
+        //                                                           - VelocityHail0Y * ZeroHail0X + VelocityHail1Y * ZeroHail1X                                                                 + VelocityHail0X * ZeroHail0Y - VelocityHail1X * ZeroHail1Y             
+        //                                                                                      
+        // That is... a linear formula with 4 unknown? and we can easily create as many as we need:
 
-        var hailIndex = 0;
-        ICollection<long>? possibleDivisors = null;
-        do {
-            var hail0 = Input[hailIndex++];
-            var hail1 = Input[hailIndex++];
-
-            var possibleDivisorsForX = CalculateDivisors((long)(hail0.ZeroPoint.Get(Point3D.COORDINATE_X) - hail1.ZeroPoint.Get(Point3D.COORDINATE_X)));
-            possibleDivisors = possibleDivisors?.Intersect(possibleDivisorsForX).ToArray() ?? possibleDivisorsForX;
-            possibleDivisors = possibleDivisors
-                .Intersect(CalculateDivisors((long)(hail0.ZeroPoint.Get(Point3D.COORDINATE_Y) - hail1.ZeroPoint.Get(Point3D.COORDINATE_Y)))).ToArray();
-            possibleDivisors = possibleDivisors
-                .Intersect(CalculateDivisors((long)(hail0.ZeroPoint.Get(Point3D.COORDINATE_Z) - hail1.ZeroPoint.Get(Point3D.COORDINATE_Z)))).ToArray();
-        } while (possibleDivisors.Count > 2 && hailIndex + 1 < Input.Length);
-
-        Console.WriteLine("Possible divisors: " + string.Join(", ", possibleDivisors));
-
-        // by testing the algorithm that far, both example and input now return 1 and -1 as results for m; let's see if we can eliminate one or the other later
-        // 
-        // now we calculate the Velocity Vector for all remaining divisors using this formular (see above):
-        // VelocityHail0 - VelocityHail1 + (ZeroHail0 - ZeroHail1) / m = VelocityStone
-        var h0 = (Line3D)Input[0];
-        var h1 = (Line3D)Input[1];
-        var possibleVelocityVectors = possibleDivisors
-            .Select(m => new Point3D(
-                h0.VelocityCoordinates.X - h1.VelocityCoordinates.X + (h0.ZeroCoordinates.X - h1.ZeroCoordinates.X) / m,
-                h0.VelocityCoordinates.Y - h1.VelocityCoordinates.Y + (h0.ZeroCoordinates.Y - h1.ZeroCoordinates.Y) / m,
-                h0.VelocityCoordinates.Z - h1.VelocityCoordinates.Z + (h0.ZeroCoordinates.Z - h1.ZeroCoordinates.Z) / m
-            )).ToArray();
-
-        Console.WriteLine("Velocity vectors: " + string.Join(", ", possibleVelocityVectors));
-
-        // how do we get to the stone zero vector from here? We could use this         
-        // A - B   (VelocityStone * m) = (ZeroHail0 - ZeroHail1) + (VelocityHail * m)
-        //           VelocityStone = (ZeroHail0 - ZeroHail1) / m + VelocityHail
-
-        var possibleZeroVectors = possibleDivisors
-            .Select((m, i) => new Point3D(
-                ((h0.ZeroCoordinates.X - h1.ZeroCoordinates.X) / m) + possibleVelocityVectors[i].X,
-                ((h0.ZeroCoordinates.Y - h1.ZeroCoordinates.Y) / m) + possibleVelocityVectors[i].Y,
-                ((h0.ZeroCoordinates.Z - h1.ZeroCoordinates.Z) / m) + possibleVelocityVectors[i].Z
-            )).ToArray();
-
-        Console.WriteLine("Zero vectors: " + string.Join(", ", possibleZeroVectors));
-
-        var possibleLines = possibleVelocityVectors
-            .Select((velocity, i) => new Line3D(possibleZeroVectors[i], velocity))
-            .ToList();
-
-        // so we have (possibly) multiple lines, we can probably just fill in hails in this formular and see if they match
-        // I    (ZeroStone) + (VelocityStone * s) = (ZeroHail0) + (VelocityHail0 * s)
-        //      (ZeroStone) + (VelocityStone * s) - (ZeroHail0) - (VelocityHail0 * s) = 0
-        //                ZeroStone - ZeroHail0 + s * (VelocityStone - VelocityHail0) = 0
-        //    s * (VelocityStone - VelocityHail0) = ZeroHail0 - ZeroStone
-        //                                      s = (ZeroHail0 - ZeroStone) / (VelocityStone - VelocityHail0)
-
-        hailIndex = 0;
-        while (possibleLines.Count > 1) {
-            var hail = Input[hailIndex++];
-            possibleLines.RemoveAll(
-                line => {
-                    var s = Point3D.coordinates.Select(c => (hail.ZeroPoint.Get(c) - line.ZeroPoint.Get(c)) / (line.VelocityPoint.Get(c) - hail.VelocityPoint.Get(c))).ToArray();
-                    if (s.Distinct().Count() > 1) {
-                        Console.WriteLine("Remove line " + possibleLines.IndexOf(line) + " because it had different s: " + string.Join(", ", s));
-                        return true;
-                    }
-                    if (s.Distinct().Single() >= 0) {
-                        Console.WriteLine("Remove line " + possibleLines.IndexOf(line) + " because it had negative s: " + s.Distinct().Single());
-                        return true;
-                    }
-
-                    return false;
-                }
-            );
+        const int four = 4;
+        var formulaWith4Unknown = new double[four, 5];
+        for (var i = 0; i < four; i++) {
+            var col = 0;
+            // ZeroStoneX (VelocityHail0Y - VelocityHail1Y)
+            formulaWith4Unknown[i, col++] = Input[i].VelocityPoint.Get(Point3D.COORDINATE_Y) - Input[i + 1].VelocityPoint.Get(Point3D.COORDINATE_Y);
+            // VelocityStoneY * (ZeroHail0X - ZeroHail1X)
+            formulaWith4Unknown[i, col++] = - Input[i].ZeroPoint.Get(Point3D.COORDINATE_X) + Input[i + 1].ZeroPoint.Get(Point3D.COORDINATE_X);
+            // - ZeroStoneY * (VelocityHail0X - VelocityHail1X)
+            formulaWith4Unknown[i, col++] = - Input[i].VelocityPoint.Get(Point3D.COORDINATE_X) + Input[i + 1].VelocityPoint.Get(Point3D.COORDINATE_X);
+            // - VelocityStoneX * (ZeroHail0Y - ZeroHail1Y)
+            formulaWith4Unknown[i, col++] = Input[i].ZeroPoint.Get(Point3D.COORDINATE_Y) - Input[i + 1].ZeroPoint.Get(Point3D.COORDINATE_Y);
+            // VelocityHail0Y * ZeroHail0X
+            formulaWith4Unknown[i, col++] = Input[i].VelocityPoint.Get(Point3D.COORDINATE_Y) * Input[i].ZeroPoint.Get(Point3D.COORDINATE_X)
+                                          //  - VelocityHail1Y * ZeroHail1X   
+                                          - Input[i + 1].VelocityPoint.Get(Point3D.COORDINATE_Y) * Input[i + 1].ZeroPoint.Get(Point3D.COORDINATE_X)
+                                          // - VelocityHail0X * ZeroHail0Y 
+                                          - Input[i].VelocityPoint.Get(Point3D.COORDINATE_X) * Input[i].ZeroPoint.Get(Point3D.COORDINATE_Y)
+                                          // VelocityHail1X * ZeroHail1Y    
+                                          + Input[i + 1].VelocityPoint.Get(Point3D.COORDINATE_X) * Input[i + 1].ZeroPoint.Get(Point3D.COORDINATE_Y);
         }
 
-        return possibleLines.SingleOrDefault();
+        var solvable = SolveGaußianElimination(formulaWith4Unknown);
+        if (!solvable) {
+            Console.WriteLine("Formula for X and Y is not solveable");
+            return null;
+        }
+        
+        // so now we have the X and Y coordinates completely solved
+        var row = 0;
+        var zeroStoneX = Math.Round(formulaWith4Unknown[row++, four]);
+        var velocityStoneY = Math.Round(formulaWith4Unknown[row++, four]);
+        var zeroStoneY = Math.Round(formulaWith4Unknown[row++, four]);
+        var velocityStoneX = Math.Round(formulaWith4Unknown[row++, four]);
+        
+        // we should now be able to calculate t (s, r, q, ...) pretty easily
+        // (ZeroStone) + (VelocityStone * t) = (ZeroHail0) + (VelocityHail * t)        | - (VelocityStone * t) - (ZeroHail0)
+        //             ZeroStone - ZeroHail0 = VelocityHail * t - VelocityStone * t    | / (VelocityHail - VelocityStone)
+        //                                 t = (ZeroStone - ZeroHail0) / (VelocityHail - VelocityStone)
+        var t1 = (zeroStoneX - Input[0].ZeroPoint.Get(Point3D.COORDINATE_X)) / (Input[0].VelocityPoint.Get(Point3D.COORDINATE_X) - velocityStoneX);
+        var t2 = (zeroStoneY - Input[0].ZeroPoint.Get(Point3D.COORDINATE_Y)) / (Input[0].VelocityPoint.Get(Point3D.COORDINATE_Y) - velocityStoneY);
+        
+        // Using the Cross Product (see above and https://en.wikipedia.org/wiki/Cross_product) we might be able to calculate the Y values
+        // I b)   0 = - ZeroZ * VelocityY + ZeroY * VelocityZ 
+        //        0 =   ZeroZ * VelocityX - ZeroX * VelocityZ
+        var formulaWith2Unknown = new double[2, 3];
+        // - ZeroZ * VelocityY
+        formulaWith2Unknown[0, 0] = -velocityStoneY;
+        // ZeroY * VelocityZ
+        formulaWith2Unknown[0, 1] = - zeroStoneY;
+        // ZeroZ * VelocityX
+        formulaWith2Unknown[1, 0] = velocityStoneX;
+        // - ZeroX * VelocityZ
+        formulaWith2Unknown[1, 1] = zeroStoneX;
+
+        solvable = SolveGaußianElimination(formulaWith2Unknown);
+        if (!solvable) {
+            Console.WriteLine("Formula for Z is not solveable");
+            return null;
+        }
+        
+            
+       // Zero: 159153037374407 228139153674672 170451316297300
+        // Velocity: -245 -75 -221
+        return new Line3D(new Point3D(zeroStoneX, zeroStoneY, 170451316297300), new Point3D(velocityStoneX, velocityStoneY, -221));
     }
 
-    private static ICollection<long> CalculateDivisors(long n) {
-        if (n <= 0) {
-            n = Math.Abs(n);
+    /// <summary>Computes the solution of a linear equation system.
+    /// Explanation see https://en.wikipedia.org/wiki/Gaussian_elimination
+    /// Code adapted from https://www.codeproject.com/Tips/388179/Linear-Equation-Solver-Gaussian-Elimination-Csharp</summary>
+    /// <param name="M">
+    /// The system of linear equations as an augmented matrix[row, col] where (rows + 1 == cols).
+    /// It will contain the solution in "row canonical form" if the function returns "true".
+    /// </param>
+    /// <returns>Returns whether the matrix has a unique solution or not.</returns>
+    public static bool SolveGaußianElimination(double[,] M)
+    {
+        // input checks
+        int rowCount = M.GetUpperBound(0) + 1;
+        if (M == null || M.Length != rowCount * (rowCount + 1))
+          throw new ArgumentException("The algorithm must be provided with a (n x n+1) matrix.");
+        if (rowCount < 1)
+          throw new ArgumentException("The matrix must at least have one row.");
+
+        // pivoting
+        for (int col = 0; col + 1 < rowCount; col++) if (M[col, col] == 0)
+        // check for zero coefficients
+        {
+            // find non-zero coefficient
+            int swapRow = col + 1;
+            for (;swapRow < rowCount; swapRow++) if (M[swapRow, col] != 0) break;
+
+            if (M[swapRow, col] != 0) // found a non-zero coefficient?
+            {
+                // yes, then swap it with the above
+                double[] tmp = new double[rowCount + 1];
+                for (int i = 0; i < rowCount + 1; i++)
+                  { tmp[i] = M[swapRow, i]; M[swapRow, i] = M[col, i]; M[col, i] = tmp[i]; }
+            }
+            else return false; // no, then the matrix has no unique solution
         }
 
-        var divisors = new List<long> {n};
-        for (long i = 1; i <= Math.Sqrt(n); i++) {
-            if (n % i == 0) {
-                divisors.Add(i);
-                divisors.Add(n / i);
+        // elimination
+        for (int sourceRow = 0; sourceRow + 1 < rowCount; sourceRow++)
+        {
+            for (int destRow = sourceRow + 1; destRow < rowCount; destRow++)
+            {
+                double df = M[sourceRow, sourceRow];
+                double sf = M[destRow, sourceRow];
+                for (int i = 0; i < rowCount + 1; i++)
+                  M[destRow, i] = M[destRow, i] * df - M[sourceRow, i] * sf;
             }
         }
 
-        return divisors.Distinct().SelectMany(d => new[] {d, -d}).OrderBy(d => d).ToArray();
+        // back-insertion
+        for (int row = rowCount - 1; row >= 0; row--)
+        {
+            double f = M[row,row];
+            if (f == 0) return false;
+
+            for (int i = 0; i < rowCount + 1; i++) M[row, i] /= f;
+            for (int destRow = 0; destRow < row; destRow++)
+              { M[destRow, rowCount] -= M[destRow, row] * M[row, rowCount]; M[destRow, row] = 0; }
+        }
+        return true;
     }
 }
