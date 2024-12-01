@@ -24,11 +24,13 @@ Some of the challenges where done in a [JavaScript simulation](https://slothsoft
 <!-- STEFFI, DO NOT ADD STUFF HERE! USE README-raw.md!!! -->
 
 
-
 # 2024
+
+<div id="text3" style="padding:0;padding-top:95px;background-size:150px 95px;background-repeat: repeat-x;background-image: url(./Calendar/calendar-tile-2024-fire.svg);">
 
 <a href="./2024/01"><img src="./Calendar/Tiles/2024/01.svg" width="150px"></a>
 
+</div>
 
 # 2023
 
