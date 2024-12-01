@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using NUnit.Framework;
 
 namespace AoC.day1;
 
@@ -12,15 +10,18 @@ namespace AoC.day1;
 public class HistorianHysteria {
     public HistorianHysteria(IEnumerable<string> input) {
         ParseInput(input);
-        _count = LeftList.Count;
-        if (RightList.Count != _count) throw new Exception("Counts are not the same!");
+        Count = LeftList.Count;
+        
+        if (RightList.Count != Count) {
+            throw new Exception("Counts are not the same!");
+        }
     }
 
-    internal IList<long> LeftList { get; } = new List<long>();
-    internal IList<long> RightList { get; } = new List<long>();
-    private long _count { get; }
+    private IList<long> LeftList { get; } = new List<long>();
+    private IList<long> RightList { get; } = new List<long>();
+    private long Count { get; }
 
-    internal void ParseInput(IEnumerable<string> input) {
+    private void ParseInput(IEnumerable<string> input) {
         foreach (var line in input) {
             var values = line.Split("   ");
             LeftList.Add(values[0].ExtractDigitsAsLong());
@@ -33,7 +34,7 @@ public class HistorianHysteria {
         var right = RightList.Order().ToArray();
 
         var result = 0L;
-        for (var i = 0; i < _count; i++) {
+        for (var i = 0; i < Count; i++) {
             result += Math.Abs(left[i] - right[i]);
         }
         return result;
@@ -41,10 +42,6 @@ public class HistorianHysteria {
     
     public long CalculateSimilarityScore() {
         var rightCount = RightList.GroupBy(v => v).ToDictionary(g => g.Key, g => g.Count());
-        var result = 0L;
-        foreach (var left in LeftList) {
-            result += left * rightCount.GetValueOrDefault(left);
-        }
-        return result;
+        return LeftList.Sum(left => left * rightCount.GetValueOrDefault(left));
     }
 }
