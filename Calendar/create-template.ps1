@@ -40,7 +40,7 @@ $webClient.Headers.add("Cookie", -join("session=", $environmentJson.Cookie))
 $dayContent = $webClient.DownloadString("https://adventofcode.com/$year/day/$day")
 # $dayContent = [string] (gc "$PSScriptRoot\Examples\puzzle-2023.html" -encoding utf8)
 
-$regex = '<h2>--- Day ' + $day + ': ([^-]*) ---<\/h2>'
+$regex = '<h2>--- Day ' + $day + ': (.*) ---<\/h2>'
 $title = 'TODO!!!'
 foreach ($titleGroup in ([regex]$regex).Matches($dayContent)) {
     $title = $titleGroup.Groups.Groups[1].Value.Trim()
