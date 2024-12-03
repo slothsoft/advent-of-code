@@ -12,7 +12,7 @@ public class RedNosedReports {
         Input = ParseInput(input);
     }
 
-    public int ProblemDampener { get; set; } = 0;
+    public bool ProblemDampener { get; set; }
     private IList<int[]> Input { get; } = new List<int[]>();
 
     private static IList<int[]> ParseInput(IEnumerable<string> input) {
@@ -20,37 +20,33 @@ public class RedNosedReports {
     }
 
     public long CalculateSafeReportsCount() {
-        return Input.LongCount(IsReportSafe);
+        return Input.LongCount(i => IsReportSafe(i, ProblemDampener));
     }
 
-    internal bool IsReportSafe(int[] report) {
+    internal bool IsReportSafe(int[] report) => IsReportSafe(report, ProblemDampener);
+        
+    private bool IsReportSafe(IReadOnlyList<int> report, bool problemDampener) {
         // theese really are a poor man's median
-        var firstHalfMedian = report.Take(report.Length / 2).Order().Skip(report.Length / 4).First();
-        var secondHalfMedian = report.Skip(report.Length / 2).Order().Skip(report.Length / 4).First();
+        var firstHalfMedian = report.Take(report.Count / 2).Order().Skip(report.Count / 4).First();
+        var secondHalfMedian = report.Skip(report.Count / 2).Order().Skip(report.Count / 4).First();
         
         var rangeToCheck = firstHalfMedian > secondHalfMedian
             ? /* decreasing */ new Range<int>(-3, 0) // "to" is excluding
             : /* increasing */ new Range<int>(1, 4);
         var lastCheckedNumber = report[0];
         var reportIsSafe = true;
-        var problemDampener = ProblemDampener;
             
-        for (var i = 1; i < report.Length; i++) {
+        for (var i = 1; i < report.Count; i++) {
             if (rangeToCheck.Contains(report[i] - lastCheckedNumber)) {
                 // this particular number is safe
                 lastCheckedNumber = report[i];
             } else {
-                if (problemDampener > 0) {
-                    if (Math.Abs(report[i] - lastCheckedNumber) > 3) {
-                        // the problem dampener cannot take this kind of errors D:
-                        reportIsSafe = false;
-                        Console.WriteLine(string.Join(",", report));
-                        break;
-                    } else {
-                        // the problem dampener will take this problem
-                        problemDampener--;
-                        continue;
-                    }
+                if (problemDampener) {
+                    // the problem dampener might take this problem
+                    return
+                        IsReportSafe(report.Where((_, index) => index != i).ToArray(), false) ||
+                        IsReportSafe(report.Where((_, index) => index != i - 1).ToArray(), false) ||
+                        IsReportSafe(report.Where((_, index) => index != i + 1).ToArray(), false);
                 }
                 // the number is not safe, so we can stop checking
                 reportIsSafe = false;

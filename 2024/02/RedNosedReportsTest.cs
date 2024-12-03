@@ -22,7 +22,7 @@ public class RedNosedReportsTest {
     [Test]
     public void Example2() {
         var example = new RedNosedReports(File.ReadAllLines(@"02\example.txt")) {
-            ProblemDampener = 1,
+            ProblemDampener = true,
         };
         
         Assert.AreEqual(4,  example.CalculateSafeReportsCount());   
@@ -31,12 +31,10 @@ public class RedNosedReportsTest {
     [Test]
     public void Puzzle2() {
         var puzzle = new RedNosedReports(File.ReadAllLines(@"02\input.txt")) {
-            ProblemDampener = 1,
+            ProblemDampener = true,
         };
         
-        // 701 is too low
-        // 710 is too low
-        Assert.AreEqual(7,  puzzle.CalculateSafeReportsCount());  
+        Assert.AreEqual(717,  puzzle.CalculateSafeReportsCount());  
     }
     
     [Test]
@@ -48,10 +46,9 @@ public class RedNosedReportsTest {
     [TestCase("1,3,2,4,5", true)]
     [TestCase("8,6,4,4,1", true)]
     [TestCase("1,3,6,7,9", true)]
-    [TestCase("1,3,6,7,9", true)]
     public void Puzzle2_IsReportSafe(string reportLine, bool expectedIsSafe) {
         var puzzle = new RedNosedReports([]) {
-            ProblemDampener = 1,
+            ProblemDampener = true,
         };
 
         var report = reportLine.Split(",").Select(s => s.ExtractDigitsAsInt()).ToArray();
