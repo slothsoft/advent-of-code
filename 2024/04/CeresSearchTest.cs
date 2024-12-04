@@ -23,16 +23,18 @@ public class CeresSearchTest {
     }
 
     [Test]
-    public void Example2() {
-        var example = new CeresSearch(File.ReadAllLines(@"04\example.txt"));
+    [TestCase(@"04\example4.txt", 1)]
+    [TestCase(@"04\example5.txt", 9)]
+    public void Example2(string exampleFile, long expectedCrossMas) {
+        var example = new CeresSearch(File.ReadAllLines(exampleFile));
         
-        Assert.AreEqual(7,  example.CalculateXmasCount());   
+        Assert.AreEqual(expectedCrossMas,  example.CalculateCrossMasCount());   
     }
 
     [Test]
     public void Puzzle2() {
         var puzzle = new CeresSearch(File.ReadAllLines(@"04\input.txt"));
         
-        Assert.AreEqual(7,  puzzle.CalculateXmasCount());  
+        Assert.AreEqual(1998,  puzzle.CalculateCrossMasCount());   
     }
 }
