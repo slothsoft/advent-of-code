@@ -15,20 +15,20 @@ public class BridgeRepairTest {
     public void Puzzle1() {
         var puzzle = new BridgeRepair(File.ReadAllLines(@"07\input.txt"));
         
-        Assert.AreEqual(7,  puzzle.CalculateCalibrationResult());  
+        Assert.AreEqual(932137732557,  puzzle.CalculateCalibrationResult());  
     }
 
     [Test]
     public void Example2() {
-        var example = new BridgeRepair(File.ReadAllLines(@"07\example.txt"));
+        var example = new BridgeRepair(File.ReadAllLines(@"07\example.txt"), true);
         
-        Assert.AreEqual(7,  example.CalculateCalibrationResult());   
+        Assert.AreEqual(11387,  example.CalculateCalibrationResult());   
     }
 
     [Test]
     public void Puzzle2() {
-        var puzzle = new BridgeRepair(File.ReadAllLines(@"07\input.txt"));
+        var puzzle = new BridgeRepair(File.ReadAllLines(@"07\input.txt"), true);
         
-        Assert.AreEqual(7,  puzzle.CalculateCalibrationResult());  
+        Assert.AreEqual(661823605105500,  puzzle.CalculateCalibrationResult());  
     }
 }

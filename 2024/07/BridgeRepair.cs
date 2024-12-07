@@ -15,11 +15,15 @@ public class BridgeRepair {
     }
     internal record Equation(long TestValue, long[] Numbers);
 
-    public BridgeRepair(IEnumerable<string> input) {
+    public BridgeRepair(IEnumerable<string> input, bool useConcatenation = false) {
         Operators = [
             new Operator("+", (a,b) => a + b),
             new Operator("*", (a,b) => a * b),
         ];
+        if (useConcatenation) {
+            Operators = Operators.Concat([new Operator("||", (a, b) => (long)(a * Math.Pow(10, b.ToString().Length)) + b)]).ToArray();
+        }
+        
         Input = ParseInput(input);
     }
 
