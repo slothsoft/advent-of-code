@@ -31,21 +31,27 @@ public class ResonantCollinearityTest {
     public void Puzzle1() {
         var puzzle = new ResonantCollinearity(File.ReadAllLines(@"08\input.txt"));
         
-        // 298 too high
-        Assert.AreEqual(7,  puzzle.CalculateAntinodesCount());  
+        Assert.AreEqual(261,  puzzle.CalculateAntinodesCount());  
     }
 
     [Test]
-    public void Example2() {
+    public void Example2A() {
         var example = new ResonantCollinearity(File.ReadAllLines(@"08\example.txt"));
         
-        Assert.AreEqual(7,  example.CalculateAntinodesCount());   
+        Assert.AreEqual(34,  example.CalculateResonantHarmonicsCount());   
+    }
+    
+    [Test]
+    public void Example2B() {
+        var example = new ResonantCollinearity(File.ReadAllLines(@"08\example2.txt"));
+        
+        Assert.AreEqual(9,  example.CalculateResonantHarmonicsCount());   
     }
 
     [Test]
     public void Puzzle2() {
         var puzzle = new ResonantCollinearity(File.ReadAllLines(@"08\input.txt"));
         
-        Assert.AreEqual(7,  puzzle.CalculateAntinodesCount());  
+        Assert.AreEqual(898,  puzzle.CalculateResonantHarmonicsCount());  
     }
 }

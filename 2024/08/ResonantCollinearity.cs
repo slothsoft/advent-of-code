@@ -49,13 +49,10 @@ public class ResonantCollinearity {
 
     public long CalculateAntinodesCount() {
         var frequencies = Input.Select(n => n.Frequency).Distinct().ToArray();
-        foreach (var point in CalculateAntinodes('r').Distinct()) {
-            Console.WriteLine(point);
-        }
-        return frequencies.SelectMany(CalculateAntinodes).Distinct().Count();
+        return frequencies.SelectMany(f => CalculateAntinodes(f, CalculateAntinodes)).Distinct().Count();
     }
     
-    private IEnumerable<Point> CalculateAntinodes(char frequeny) {
+    private IEnumerable<Point> CalculateAntinodes(char frequeny, Func<Point, Point, IEnumerable<Point>> calculateAntinodes) {
         IEnumerable<Point> result = [];
 
         var nodesWithFrequency = Input.Where(n => n.Frequency == frequeny).ToArray();
@@ -64,7 +61,7 @@ public class ResonantCollinearity {
             var node1 = nodesWithFrequency[i];
             for (var j = i + 1; j < nodesWithFrequency.Length; j++) {
                 var node2 = nodesWithFrequency[j];
-                result = result.Concat(CalculateAntinodes(node1.Location, node2.Location));
+                result = result.Concat(calculateAntinodes(node1.Location, node2.Location));
             }
         }
         return result.Distinct();
@@ -83,5 +80,30 @@ public class ResonantCollinearity {
     
     private bool IsOnMap(Point point) {
         return point.X >= 0 && point.X < Width && point.Y >= 0 && point.Y < Height;
+    }
+
+    public long CalculateResonantHarmonicsCount() {
+        var frequencies = Input.Select(n => n.Frequency).Distinct().ToArray();
+        return frequencies.SelectMany(f => CalculateAntinodes(f, CalculateAntinodesInLine)).Distinct().Count();
+    }
+    
+    private IEnumerable<Point> CalculateAntinodesInLine(Point point1, Point point2) {
+        yield return point1;
+        yield return point2;
+        
+        var xDiff = point1.X - point2.X;
+        var yDiff = point1.Y - point2.Y;
+
+        var antiPoint1 = new Point(point1.X + xDiff, point1.Y + yDiff);
+        var antiPoint2 = new Point(point2.X - xDiff, point2.Y - yDiff);
+        
+        while (IsOnMap(antiPoint1)) {
+            yield return antiPoint1;
+            antiPoint1 = new Point(antiPoint1.X + xDiff, antiPoint1.Y + yDiff);
+        }
+        while (IsOnMap(antiPoint2)) {
+            yield return antiPoint2;
+            antiPoint2 = new Point(antiPoint2.X - xDiff, antiPoint2.Y - yDiff);
+        }
     }
 }
