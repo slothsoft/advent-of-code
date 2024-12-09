@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace AoC.day9;
@@ -13,7 +14,7 @@ public class DiskFragmenter {
 
     internal int?[] Input { get; }
 
-    public long CalculateFileSystemChecksum() {
+    public long CalculateFileSystemChecksum(bool skipEmpty) {
         var result = 0L;
         var skipped = 0;
         
@@ -21,7 +22,8 @@ public class DiskFragmenter {
             if (Input[i] != null) {
                 result += (i - skipped) * Input[i]!.Value;
             } else {
-                skipped++;
+                // I have NO IDEA why this is necessary, but found it via trial and error
+                if (skipEmpty) skipped++;
             }
         }
 
@@ -67,6 +69,50 @@ public static class DiskFragmenterExtensions {
             
             firstIndex++;
             lastIndex--;
+        }
+    }
+    
+    public static void Compact(this int?[] diskMap) {
+        var ids = diskMap.OfType<int>().Distinct().OrderDescending().ToArray();
+
+        foreach (var id in ids) {
+            var fileStart = Array.IndexOf(diskMap, id);
+            var fileEnd = Array.LastIndexOf(diskMap, id);
+            var fileLength = fileEnd - fileStart + 1;
+            
+            // where exactly did the ID go?
+            if (fileStart == -1) throw new Exception("Could not find fields with ID " + id + ": " + diskMap.Stringify());
+
+            for (var i = 0; i < diskMap.Length; i++) {
+                // we are now on the file
+                if (diskMap[i] != null && diskMap[i] == id) break;
+
+                if (diskMap[i] == null) {
+                    // found free space, check if it is big enough
+                    var bigEnough = true;
+                    var breakingIndex = 0;
+                    for (breakingIndex = i + 1; breakingIndex < i + fileLength; breakingIndex++) {
+                        if (diskMap[breakingIndex] != null) {
+                            bigEnough = false;
+                            break;
+                        }
+                    }
+                    
+                    // if it is not big enough, skip a couple of spaces
+                    if (!bigEnough) {
+                        i += breakingIndex - i;
+                        continue;
+                    }
+                    
+                    // if it is big enough, move file and break
+                    for (var iPlus = 0; iPlus < fileLength; iPlus++) {
+                        diskMap[i + iPlus] = diskMap[fileStart + iPlus];
+                        diskMap[fileStart + iPlus] = null;
+                    }
+                    break;
+                }      
+            }
+
         }
     }
     

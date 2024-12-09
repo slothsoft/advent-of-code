@@ -35,7 +35,7 @@ public class DiskFragmenterTest {
         var example = new DiskFragmenter(InputExample1A);
         example.Input.Fragment();
         
-        Assert.AreEqual(1928,  example.CalculateFileSystemChecksum());       
+        Assert.AreEqual(1928,  example.CalculateFileSystemChecksum(true));       
     }
 
     [Test]
@@ -43,20 +43,32 @@ public class DiskFragmenterTest {
         var puzzle = new DiskFragmenter(File.ReadAllLines(@"09\input.txt").Single());
         puzzle.Input.Fragment();
         
-        Assert.AreEqual(6_385_338_159_127,  puzzle.CalculateFileSystemChecksum());  
+        Assert.AreEqual(6_385_338_159_127,  puzzle.CalculateFileSystemChecksum(true));  
+    }
+    
+    [Test]
+    [TestCase(InputExample1A, "00992111777.44.333....5555.6666.....8888..")]
+    public void Example1_Compact(string input, string expectedDiskMap) {
+        var result = input.ParseDiskMap();
+        result.Compact();
+        
+        Assert.NotNull(result);
+        Assert.AreEqual(expectedDiskMap,  result.Stringify());
     }
 
     [Test]
     public void Example2() {
-        var example = new DiskFragmenter(File.ReadAllLines(@"09\example.txt").Single());
+        var example = new DiskFragmenter(InputExample1A);
+        example.Input.Compact();
         
-        Assert.AreEqual(7,  example.CalculateFileSystemChecksum());   
+        Assert.AreEqual(2858,  example.CalculateFileSystemChecksum(false));   
     }
 
     [Test]
     public void Puzzle2() {
         var puzzle = new DiskFragmenter(File.ReadAllLines(@"09\input.txt").Single());
+        puzzle.Input.Compact();
         
-        Assert.AreEqual(7,  puzzle.CalculateFileSystemChecksum());  
+        Assert.AreEqual(6_415_163_624_282,  puzzle.CalculateFileSystemChecksum(false));  
     }
 }
