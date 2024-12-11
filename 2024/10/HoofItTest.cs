@@ -33,13 +33,13 @@ public class HoofItTest {
     public void Example2() {
         var example = new HoofIt(File.ReadAllLines(@"10\example3.txt"));
         
-        Assert.AreEqual(81,  example.CalculateTrailheadScore());   
+        Assert.AreEqual(81,  example.CalculateTrailScore());   
     }
 
     [Test]
     public void Puzzle2() {
         var puzzle = new HoofIt(File.ReadAllLines(@"10\input.txt"));
         
-        Assert.AreEqual(1162,  puzzle.CalculateTrailheadScore());  
+        Assert.AreEqual(1162,  puzzle.CalculateTrailScore());  
     }
 }

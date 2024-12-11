@@ -26,7 +26,7 @@ public class HoofIt {
     }
 
     internal int[][] Input { get; }
-    internal Direction[]AllDirections { get; }
+    internal Direction[] AllDirections { get; }
 
     public long CalculateTrailheadScore() {
         var result = 0L;
@@ -44,17 +44,22 @@ public class HoofIt {
         return result;
     }
     
-    internal long CalculateTrailheadScore(int x, int y, ISet<(int X, int Y)> alreadyCounted, int currentValue = 0) {
+    private long CalculateTrailheadScore(int x, int y, ISet<(int X, int Y)>? alreadyCounted, int currentValue = 0) {
         var result = 0L;
         foreach (var direction in AllDirections) {
             var newPoint = direction.Modify(x, y);
             if (IsPointOnMap(newPoint.X, newPoint.Y) && Input[newPoint.X][newPoint.Y] == currentValue + 1) {
                 if (currentValue + 1 == 9) {
-                    // if (!alreadyCounted.Contains(newPoint)) {
+                    // last point of trail, so return 1
+                    if (alreadyCounted == null) {
                         // last point of trail, so return 1
                         result += 1;
-                        alreadyCounted.Add(newPoint);
-                    // }
+                    } else {
+                        if (!alreadyCounted.Contains(newPoint)) {
+                            result += 1;
+                            alreadyCounted.Add(newPoint);
+                        }
+                    }
                 } else {
                     // middle point of the trail, so check all surrounding points
                     result += CalculateTrailheadScore(newPoint.X, newPoint.Y, alreadyCounted, currentValue + 1);
@@ -66,4 +71,16 @@ public class HoofIt {
     
     private bool IsPointOnMap(int x, int y) => IsCoordOnMap(x, Input.Length) && IsCoordOnMap(y, Input[0].Length);
     private static bool IsCoordOnMap(int coord, int length) => coord >= 0 && coord < length;
+    
+    public long CalculateTrailScore() {
+        var result = 0L;
+        for (var x = 0; x < Input.Length; x++) {
+            for (var y = 0; y < Input[x].Length; y++) {
+                if (Input[x][y] == 0) {
+                    result += CalculateTrailheadScore(x, y, null);
+                }
+            }
+        }
+        return result;
+    }
 }
