@@ -101,6 +101,20 @@ public class ParseExtensionsTest {
         Assert.AreEqual('k', matrix[1][3]);
         Assert.AreEqual('l', matrix[2][3]);
     }
+    
+    [Test]
+    public void TestParseIntMatrix() {
+        var lines = new[] {"123", "456"};
+        var matrix = lines.ParseIntMatrix();
+
+        Assert.AreEqual(1, matrix[0][0]);
+        Assert.AreEqual(2, matrix[1][0]);
+        Assert.AreEqual(3, matrix[2][0]);
+
+        Assert.AreEqual(4, matrix[0][1]);
+        Assert.AreEqual(5, matrix[1][1]);
+        Assert.AreEqual(6, matrix[2][1]);
+    }
 
     [Test]
     [TestCase("", new int[0])]

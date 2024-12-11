@@ -58,6 +58,15 @@ public static class ParseExtensions {
     }
     
     /// <summary>
+    /// Parses an input of strings into a matrix of ints.
+    /// </summary>
+    /// <param name="input">the input strings</param>
+    /// <returns>a matrix with X as the first coordinate and y as second</returns>
+    public static int[][] ParseIntMatrix(this IEnumerable<string> input) {
+        return input.ParseMatrix(c => int.Parse(c.ToString()));
+    }
+    
+    /// <summary>
     /// Parses an input of strings into a matrix of chars.
     /// </summary>
     /// <param name="input">the input strings</param>
