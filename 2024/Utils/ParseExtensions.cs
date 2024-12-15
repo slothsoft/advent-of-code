@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace AoC;
@@ -82,17 +83,46 @@ public static class ParseExtensions {
     /// <param name="singleCellParser">parser for single cell</param>
     /// <returns>a  with X as the first coordinate and y as second</returns>
     public static TResult[][] ParseMatrix<TResult>(this IEnumerable<string> input, Func<char, TResult> singleCellParser) {
+        return input.ParseMatrix((x, y, c) => singleCellParser(c));
+    }
+    
+    /// <summary>
+    /// Parses an input of strings into a matrix of values.
+    /// </summary>
+    /// <param name="input">the input strings</param>
+    /// <param name="singleCellParser">parser for single cell</param>
+    /// <returns>a  with X as the first coordinate and y as second</returns>
+    public static TResult[][] ParseMatrix<TResult>(this IEnumerable<string> input, Func<int, int, char, TResult> singleCellParser) {
         List<TResult>?[]? result = null;
-
+        var y = 0;
+        
         foreach (var line in input) {
             result ??= new List<TResult>[line.Length];
             for (var x = 0; x < line.Length; x++) {
-                result[x] ??= new List<TResult>();
-                result[x]!.Add(singleCellParser(line[x]));
+                result[x] ??= [];
+                result[x]!.Add(singleCellParser(x, y, line[x]));
             }
+            y++;
         }
 
-        return result?.Select(r => r!.ToArray()).ToArray() ?? Array.Empty<TResult[]>();
+        return result?.Select(r => r!.ToArray()).ToArray() ?? [];
+    }
+
+    public static string StringifyMatrix<TElement>(this TElement[][] matrix) => matrix.StringifyMatrix(e => e?.ToString()?[0] ?? '❓');
+
+    public static string StringifyMatrix<TElement>(this TElement[][] matrix, Func<TElement, char> toString) {
+        return matrix.StringifyMatrix((x, y, e) => toString(e));
+    }
+    
+    public static string StringifyMatrix<TElement>(this TElement[][] matrix, Func<int, int, TElement, char> toString) {
+        var result = new StringBuilder();
+        for (var y = 0; y < matrix[0].Length; y++) {
+            for (var x = 0; x < matrix.Length; x++) {
+                result.Append(toString(x, y, matrix[x][y]));
+            }
+            result.Append(Environment.NewLine);
+        }
+        return result.ToString().TrimEnd();
     }
 
     /// <summary>
@@ -103,7 +133,7 @@ public static class ParseExtensions {
     /// <returns>a  with X as the first coordinate and y as second</returns>
     public static int[] ParseIntArray(this string input, char separator = ' ') {
         if (input.Length == 0) {
-            return Array.Empty<int>();
+            return [];
         }
         
         return input.Trim().Split(separator).Select(ExtractDigitsAsInt).ToArray();
@@ -117,7 +147,7 @@ public static class ParseExtensions {
     /// <returns>a  with X as the first coordinate and y as second</returns>
     public static long[] ParseLongArray(this string input, char separator = ' ') {
         if (input.Length == 0) {
-            return Array.Empty<long>();
+            return [];
         }
         
         return input.Trim().Split(separator).Select(ExtractDigitsAsLong).ToArray();

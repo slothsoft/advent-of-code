@@ -86,6 +86,13 @@ public class GardenGroups {
             }
         }
     }
+    
+    public long CalculateSidePrice() {
+        // a) we could calculate the perimeter and join the parts next to each other?
+        // b) the circumference is side-corner-side-corner-..., so maybe calculating the corner is easier?
+        Regions ??= FetchRegions(Input);
+        return Regions.Sum(r => r.CalculateArea() * r.CalculatePerimeter());
+    }
 }
 
 public static class GardenGroupsExtensions {
