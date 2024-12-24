@@ -24,3 +24,9 @@ public class {ClassName} {
         return 7;
     }
 }
+
+public static class {ClassName}Extensions {
+    public static long Calculate(this int value) {
+        return value + 1;
+    }
+}
