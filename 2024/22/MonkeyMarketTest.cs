@@ -71,6 +71,7 @@ public class MonkeyMarketTest {
     [TestCase(2024, new[] {-2,1,-1,3},9)]
     public void Example2_CalculateBananas(int startNumber, int[] monkeyCommand, long expectedPrice) {
         Assert.AreEqual(expectedPrice,  MonkeyMarket.CalculateBananas(startNumber, monkeyCommand));   
+        Assert.AreEqual(expectedPrice,  MonkeyMarket.CalculateNormalizedBananas(startNumber, monkeyCommand));   
     }
 
     
@@ -78,13 +79,22 @@ public class MonkeyMarketTest {
     public void Example2() {
         var example = new MonkeyMarket(File.ReadAllLines(@"22\example2.txt"));
         
-        Assert.AreEqual(23,  example.CalculateMaxBananas(2000));   
+        Assert.AreEqual(23,  example.CalculateMaxNormalizedBananas(2000));   
     }
+    
+    [Test]
+    public void Example2_Normalized() {
+        var example = new MonkeyMarket(File.ReadAllLines(@"22\example2.txt"));
+        
+        Assert.AreEqual(23,  example.CalculateMaxNormalizedBananas(2000));   
+    }
+
 
     [Test]
     public void Puzzle2() {
         var puzzle = new MonkeyMarket(File.ReadAllLines(@"22\input.txt"));
         
-        Assert.AreEqual(7,  puzzle.CalculateMaxBananas(2000));  
+        // this took only an hour :D
+        Assert.AreEqual(1898,  puzzle.CalculateMaxBananas(2000));  
     }
 }

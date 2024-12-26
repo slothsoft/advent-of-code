@@ -94,4 +94,40 @@ public class MonkeyMarket {
         }
         return 0;
     }
+    
+    public long CalculateMaxNormalizedBananas(long simulatedNumber) {
+        var sellerDifferences = Input.Select(i => GenerateSecretNumbers(i, simulatedNumber).ToArray()).ToList();
+        var normalizedDifferences = sellerDifferences.Select(Normalize).ToList();
+        var differences = sellerDifferences.SelectMany(d => d).Select(d => d.Value).ToHashSet();
+        var monkeyCommands = differences
+            .SelectMany(first => differences.Select(second => (first, second)))
+            .SelectMany(firstAndSecond => differences.Select(third => (firstAndSecond.first, firstAndSecond.second, third)))
+            .SelectMany(firstToThird => differences.Select(fourth => Normalize(new[] {firstToThird.first, firstToThird.second, firstToThird.third, fourth})));
+
+        var result = 0L;
+        foreach (var monkeyCommand in monkeyCommands) {
+            var potentialResult = sellerDifferences.Select((d, i) => CalculateNormalizedBananas(d, normalizedDifferences[i], monkeyCommand)).Sum();
+            result = Math.Max(result, potentialResult);
+        }
+        return result;
+    }
+
+    private static string Normalize(Difference[] differences) {
+        return Normalize(differences.Select(d => d.Value));
+    }
+    
+    private static string Normalize(IEnumerable<int> differences) {
+        return string.Join(string.Empty, differences.Select(d => d < 0 ? d.ToString() : ("+" + d)));
+    }
+    
+    internal static long CalculateNormalizedBananas(long startNumber, int[] monkeyCommand) {
+        var differences = GenerateSecretNumbers(startNumber, 2000).ToArray();
+        return CalculateNormalizedBananas(differences, Normalize(differences),Normalize(monkeyCommand));
+    }
+
+    private static long CalculateNormalizedBananas(Difference[] originalDifferences, string normalizedDifferences, string normalizedMonkeyCommand) {
+        var index = normalizedDifferences.IndexOf(normalizedMonkeyCommand, StringComparison.Ordinal);
+        if (index < 0) return 0;
+        return originalDifferences[(index + normalizedMonkeyCommand.Length) / 2 - 1].SecretNumber % 10;
+    }
 }
