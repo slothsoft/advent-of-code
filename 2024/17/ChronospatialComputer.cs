@@ -16,7 +16,7 @@ public class ChronospatialComputer {
     private const int MAX = 8;
     public class Register {
         private long[] _register = new long[3];
-        private IList<long> _output = new List<long>();
+        private IList<int> _output = new List<int>();
 
         public long GetComboOperand(int operand) {
             if (operand >= 7 || operand < 0) throw new ArgumentException("Cannot handle operand " + operand);
@@ -33,9 +33,10 @@ public class ChronospatialComputer {
             SetComboOperand(operand, work(GetComboOperand(operand)));
         }
 
-        public void AddOutput(long value) => _output.Add(value);
+        public void AddOutput(int value) => _output.Add(value);
         public void ClearOutput() => _output.Clear();
         public string Output => string.Join(",", _output);
+        public int[] OutputAsArray => _output.ToArray();
         public int? OverrideInstructionPointer { get; set; }
         public override string ToString() => $"A: {GetComboOperand(A)}, B: {GetComboOperand(B)}, C: {GetComboOperand(C)}";
     }
@@ -67,7 +68,7 @@ public class ChronospatialComputer {
         reg.ChangeComboOperand(B, _ => reg.GetComboOperand(B) ^ reg.GetComboOperand(C));
     });
     internal static readonly Instruction Out = new(nameof(Out), 5, (reg, operand) => {
-        reg.AddOutput(reg.GetComboOperand(operand) % MAX);
+        reg.AddOutput((int) (reg.GetComboOperand(operand) % MAX));
     });
     internal static readonly Instruction Bdv = new DivInstruction(nameof(Bdv), 6, B);
     internal static readonly Instruction Cdv = new DivInstruction(nameof(Cdv), 7, C);
@@ -135,7 +136,7 @@ public class ChronospatialComputer {
         
         for (var instructionPointer = 0; instructionPointer < Instructions.Length; instructionPointer++) {
             Instructions[instructionPointer].Work(register, Operands[instructionPointer]);
-
+            
             if (register.OverrideInstructionPointer != null) {
                 instructionPointer = register.OverrideInstructionPointer.Value - 1; // loop increments this
                 register.OverrideInstructionPointer = null;
@@ -144,34 +145,85 @@ public class ChronospatialComputer {
         return register;
     }
     
-    public long FindAForSolution(string expected) {
+    public long FindAForSolution() {
+        // assumption: for each output value repeats itself every x number
+        // assumption II: for the first number it should repeat after x=8 values, starting at s0
+        // assumption III: for the second number, it should by higher than 8 (according to tests it's 64... so the third is 512?
+        // the first number that connects all these repeating loops should be A (and then shouldn't 2A, 3A, ... work too?)
         var register = new Register();
-        var startValue = 1L;
+        var startValue = 0L;
+        var expected = CreateExpectedArray().ToArray();
+
+        var step = 1L;
+        var compareIndex = 0;
+        var loopAgain = true;
         
         do {
+            startValue += step;
             register.SetComboOperand(A, startValue);
             register.SetComboOperand(B, 0);
             register.SetComboOperand(C, 0);
             register.ClearOutput();
+            long? lastFittingValue = null;
             
             for (var instructionPointer = 0; instructionPointer < Instructions.Length; instructionPointer++) {
                 var instruction = Instructions[instructionPointer];
-                instruction.Work(register, Operands[instructionPointer]);
+                var operant = Operands[instructionPointer];
+                instruction.Work(register, operant);
 
                 if (register.OverrideInstructionPointer != null) {
                     instructionPointer = register.OverrideInstructionPointer.Value - 1; // loop increments this
                     register.OverrideInstructionPointer = null;
                 }
-                if (instruction == Out && !expected.StartsWith(register.Output)) {
-                    // break early if the output will never work
-                    break; 
+
+                if (instruction == Out) {
+                    // check if the output works for our expected outout
+                    var outputArray = register.OutputAsArray;
+                    
+                    // stop the program if the output doesn't fit
+                    var nonFitting = false;
+                    for (var i = 0; i < outputArray.Length; i++) {
+                        if (outputArray[i] != expected[compareIndex]) {
+                            nonFitting = true;
+                            break;
+                        }
+                    }
+                    if (nonFitting) break;
+                    
+                    if (outputArray.Length > compareIndex) {
+                        if (lastFittingValue == null) {
+                            // the first value that fits the output
+                            lastFittingValue = startValue;
+                        } else {
+                            // the second value - the difference is the new step size
+                            step = startValue - lastFittingValue.Value!;
+                            lastFittingValue = null;
+                            Console.WriteLine($"Increased steps to {step}, because index {compareIndex} worked: {register.Output}");
+                            compareIndex++;
+                        }
+                    }
+
+                    // if the output is too big break
+                    if (outputArray.Length >= expected.Length) {
+                        loopAgain = false;
+                        break;
+                    }
                 }
             }
+        } while (loopAgain && startValue < 100_000);
 
-            startValue++;
-        } while (!register.Output.Equals(expected));
-        
-        
-        return startValue - 1;
+        var expectedAsString = string.Join(",", expected);
+        if (register.Output.Equals(expectedAsString)) {
+            return startValue;
+        }
+
+        throw new Exception($"Did not find [{expectedAsString}], but [{register.Output}]");
+    }
+
+    private IEnumerable<int> CreateExpectedArray() {
+        for (var instructionPointer = 0; instructionPointer < Instructions.Length; instructionPointer++) {
+            yield return Instructions[instructionPointer].OpCode;
+            yield return Operands[instructionPointer];
+        }
     }
 }

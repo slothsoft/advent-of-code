@@ -5,6 +5,16 @@ This is my try in solving the [Advent of Code](https://adventofcode.com) challen
 
 Some of the challenges where done in a [JavaScript simulation](https://slothsoft.github.io/advent-of-code/).
 
+## How to Use
+
+On December 1st, do this:
+
+- update cookie in _Calendar/environment.json_
+  - get the cookie by logging in to Advent of Code and displaying the cookies
+- to update calendar tiles, use `cmd.exe /c '.\build.bat'`
+- to create a new template, update year and programming language in _template.bat_ and then use `cmd.exe /c '.\template.bat 1'` ("1" being the day)
+
+
 ## Possibly general algorithms
 
 - 2022/12 Dijkstra
@@ -41,7 +51,10 @@ Some of the challenges where done in a [JavaScript simulation](https://slothsoft
 <a href="./2024/12"><img src="./Calendar/Tiles/2024/12.svg" width="150px"></a>
 <a href="./2024/15"><img src="./Calendar/Tiles/2024/15.svg" width="150px"></a>
 <a href="./2024/17/"><img src="./Calendar/Tiles/2024/17.svg" width="150px"></a>
+<a href="./2024/21"><img src="./Calendar/Tiles/2024/21.svg" width="150px"></a>
 <a href="./2024/22"><img src="./Calendar/Tiles/2024/22.svg" width="150px"></a>
+<a href="./2024/24"><img src="./Calendar/Tiles/2024/24.svg" width="150px"></a>
+<a href="./2024/25"><img src="./Calendar/Tiles/2024/25.svg" width="150px"></a>
 
 
 # 2023

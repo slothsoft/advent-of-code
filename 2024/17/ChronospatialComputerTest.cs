@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using NUnit.Framework;
 
 namespace AoC.day17;
@@ -67,13 +68,38 @@ public class ChronospatialComputerTest {
     public void Example2() {
         var example = new ChronospatialComputer(File.ReadAllLines(@"17\example.txt"));
         
-        Assert.AreEqual(117440,  example.FindAForSolution("0,3,5,4,3,0"));   
+        Assert.AreEqual(117_440,  example.FindAForSolution());   
+    }
+    
+    [Test]
+    public void Example2b() {
+        var example = new ChronospatialComputer(File.ReadAllLines(@"17\example.txt"));
+
+        for (var i = 0; i < 100; i++) {
+            example.InitialRegister[0] = i;
+            Console.WriteLine($"{i}   {example.RunProgramReturnOutput()}");
+        }
     }
 
     [Test]
     public void Puzzle2() {
         var puzzle = new ChronospatialComputer(File.ReadAllLines(@"17\input.txt"));
         
-        Assert.AreEqual(7,  puzzle.RunProgram());  
+        
+        for (var i = 0; i < 1000; i++) {
+            puzzle.InitialRegister[0] = i;
+            Console.WriteLine($"{i}   {puzzle.RunProgramReturnOutput()}");
+        }
+        
+        // Assert.AreEqual(7,  puzzle.FindAForSolution());  
     }
+    
+    [Test]
+    public void Puzzle2b() {
+        var puzzle = new ChronospatialComputer(File.ReadAllLines(@"17\input.txt"));
+        
+        puzzle.InitialRegister[0] = 0;
+        Assert.AreEqual(7,  puzzle.FindAForSolution());  
+    }
+
 }
