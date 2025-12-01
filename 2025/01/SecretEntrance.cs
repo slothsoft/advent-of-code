@@ -8,25 +8,25 @@ namespace AoC.day1;
 /// <a href="https://adventofcode.com/2025/day/1">Day 1: Secret Entrance</a>
 /// </summary>
 public class SecretEntrance {
-    internal record DialMove(Direction Direction, int Value) {
+    private record DialMove(Direction Direction, int Value) {
         internal int Execute(int currentValue) {
             return Direction.Execute(currentValue, Value);
         }
     }
-    internal record Direction(char Name, Func<int, int, int> Execute);
+    private record Direction(char Name, Func<int, int, int> Execute);
 
-    internal const int MaxSafeNumber = 100;
-    internal static readonly Direction DirectionLeft = new('L', (original, value) => original - value);
+    private const int MAX_SAFE_NUMBER = 100;
+    private static readonly Direction DirectionLeft = new('L', (original, value) => original - value);
 
-    internal static readonly Direction DirectionRight = new('R', (original, value) => original + value);
+    private static readonly Direction DirectionRight = new('R', (original, value) => original + value);
 
     public SecretEntrance(IEnumerable<string> input) {
         Input = ParseInput(input);
     }
 
-    internal DialMove[] Input { get; }
+    private DialMove[] Input { get; }
 
-    internal static DialMove[] ParseInput(IEnumerable<string> input) {
+    private static DialMove[] ParseInput(IEnumerable<string> input) {
         return input
             .Where(s => !string.IsNullOrWhiteSpace(s))
             .Select(s => new DialMove(ParseDirection(s[0]), int.Parse(s[1..])))
@@ -42,7 +42,7 @@ public class SecretEntrance {
         var result = 0;
         
         foreach (var dialMove in Input) {
-            currentValue = dialMove.Execute(currentValue) % MaxSafeNumber;
+            currentValue = dialMove.Execute(currentValue) % MAX_SAFE_NUMBER;
             if (currentValue == 0) {
                 result++;
             }
@@ -56,33 +56,31 @@ public class SecretEntrance {
         
         foreach (var dialMove in Input) {
             // if movement is more than 100, then we HAVE to pass zero
-            result += dialMove.Value / MaxSafeNumber;
+            var fullHundred = dialMove.Value / MAX_SAFE_NUMBER;
+            result += fullHundred;
             
             var nextValue = dialMove.Execute(currentValue);
             
+            // we ignore full hundreds
+            var minusOrPlusOne = dialMove.Direction.Execute(0, 1);
+            nextValue -=  minusOrPlusOne * fullHundred * MAX_SAFE_NUMBER;
+            
+            // we land DIRECTLY on zero
+            if (nextValue == 0) {
+                result++;
+            }
+
             // if we move LEFT and do not start at zero, we pass zero if returning value is negative
             if (nextValue < 0 && currentValue > 0) {
                 result++;
             }
-            while (nextValue < 0) {
-                nextValue += MaxSafeNumber;
-            }
             
             // if we move RIGHT than everything over 100 passes zero
-            if (nextValue > MaxSafeNumber) {
-                result++;
-            }
-            while (nextValue >= MaxSafeNumber) {
-                nextValue -= MaxSafeNumber;
-            }
-            
-            // we land directly on zero
-            if (nextValue == 0) {
+            if (nextValue >= MAX_SAFE_NUMBER) {
                 result++;
             }
             
-            Console.WriteLine(dialMove.Direction.Name.ToString() + dialMove.Value + " => " + nextValue + " (" + result + ")");
-            currentValue = nextValue % MaxSafeNumber;
+            currentValue = (nextValue + MAX_SAFE_NUMBER) % MAX_SAFE_NUMBER;
         }
         return result;
     }

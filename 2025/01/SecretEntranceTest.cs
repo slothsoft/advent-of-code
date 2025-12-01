@@ -29,7 +29,6 @@ public class SecretEntranceTest {
     public void Puzzle2() {
         var puzzle = new SecretEntrance(File.ReadAllLines(@"01\input.txt"));
         
-        // not 2410, 5765, 5682, 6287
-        Assert.AreEqual(0,  puzzle.Calculate0x434C49434B());  
+        Assert.AreEqual(5782,  puzzle.Calculate0x434C49434B());  
     }
 }
