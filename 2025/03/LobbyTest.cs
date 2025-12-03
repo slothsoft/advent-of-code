@@ -11,34 +11,34 @@ public class LobbyTest {
     [TestCase("818181911112111", 92)]
     public void Example1_ParseInput(string input, long expected) {
         var batteryBank = new Lobby.BatteryBank(input);
-        Assert.AreEqual(expected,  batteryBank.CalculateJoltage());
+        Assert.AreEqual(expected,  batteryBank.CalculateJoltage(2));
     }
     
     [Test]
     public void Example1() {
         var example = new Lobby(File.ReadAllLines(@"03\example.txt"));
         
-        Assert.AreEqual(357,  example.CalculateTotalJoltage());       
+        Assert.AreEqual(357,  example.CalculateTotalJoltage(2));       
     }
 
     [Test]
     public void Puzzle1() {
         var puzzle = new Lobby(File.ReadAllLines(@"03\input.txt"));
         
-        Assert.AreEqual(17031,  puzzle.CalculateTotalJoltage());  
+        Assert.AreEqual(17031,  puzzle.CalculateTotalJoltage(2));  
     }
 
     [Test]
     public void Example2() {
         var example = new Lobby(File.ReadAllLines(@"03\example.txt"));
         
-        Assert.AreEqual(7,  example.CalculateTotalJoltage());   
+        Assert.AreEqual(3121910778619L,  example.CalculateTotalJoltage(12));   
     }
 
     [Test]
     public void Puzzle2() {
         var puzzle = new Lobby(File.ReadAllLines(@"03\input.txt"));
         
-        Assert.AreEqual(7,  puzzle.CalculateTotalJoltage());  
+        Assert.AreEqual(168575096286051L,  puzzle.CalculateTotalJoltage(12));  
     }
 }

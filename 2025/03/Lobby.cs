@@ -12,11 +12,19 @@ public class Lobby {
         
         internal BatteryBank(string input) : this(input.Select(b => int.Parse(b.ToString())).ToArray()) {}
         
-        public long CalculateJoltage() {
-            var firstDigit = Batteries.Take(Batteries.Length -1).Max();
-            var firstDigitIndex = Array.IndexOf(Batteries, firstDigit);
-            var secondDigit = Batteries.Skip(firstDigitIndex + 1).Max();
-            return firstDigit * 10 + secondDigit;
+        public long CalculateJoltage(int batteryCount) {
+            var result = 0L;
+            var currentBatteries = Batteries;
+            
+            for (var battery = 0; battery < batteryCount; battery++) {
+                var digit = currentBatteries.Take(currentBatteries.Length - batteryCount + battery + 1).Max();
+                var digitIndex = Array.IndexOf(currentBatteries, digit);
+                currentBatteries = currentBatteries.Skip(digitIndex + 1).ToArray();
+
+                result = result * 10 + digit;
+            }
+            
+            return result;
         }
     }
 
@@ -30,13 +38,7 @@ public class Lobby {
         return input.Select(s => new BatteryBank(s)).ToArray();
     }
 
-    public long CalculateTotalJoltage() {
-        return Input.Select(i => i.CalculateJoltage()).Sum();
-    }
-}
-
-public static class LobbyExtensions {
-    public static long Calculate(this int value) {
-        return value + 1;
+    public long CalculateTotalJoltage(int batteryCount) {
+        return Input.Select(i => i.CalculateJoltage(batteryCount)).Sum();
     }
 }
