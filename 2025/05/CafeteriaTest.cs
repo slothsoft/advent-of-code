@@ -29,6 +29,7 @@ public class CafeteriaTest {
     public void Puzzle2() {
         var puzzle = new Cafeteria(File.ReadAllLines(@"05\input.txt"));
         
-        Assert.AreEqual(7,  puzzle.CalculateFreshIngredientsCount());  
+        // too high: 371_069_763_584_716
+        Assert.AreEqual(366_181_852_921_027,  puzzle.CalculateFreshIngredientsCount());  
     }
 }
