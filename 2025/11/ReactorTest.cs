@@ -29,6 +29,6 @@ public class ReactorTest {
     public void Puzzle2() {
         var puzzle = new Reactor(File.ReadAllLines(@"11\input.txt"));
         
-        Assert.AreEqual(7,  puzzle.CalculatePathsWithDevicesCount());  
+        Assert.AreEqual(525_518_050_323_600,  puzzle.CalculatePathsWithDevicesCount());  
     }
 }

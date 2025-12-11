@@ -26,29 +26,29 @@ public class Reactor {
     }
 
     public long CalculatePathsCount() {
-        return CalculatePaths("you").Count();
+        return CalculatePathCount("you");
     }
     
-    private IEnumerable<ISet<string>> CalculatePaths(string from, string to = "out", ISet<string>? checkedDevices = null) {
-        checkedDevices ??= new HashSet<string>();
-        checkedDevices.Add(from);
+    private long CalculatePathCount(string from, string to = "out", IDictionary<string, long>? checkedDevices = null) {
+        checkedDevices ??= new Dictionary<string, long>();
 
-        if (from == to) {
-            yield return checkedDevices;
-            yield break;
+        if (checkedDevices.TryGetValue(from, out var cachedCount)) {
+            return cachedCount;
         }
 
-        if (from == "out") {
-            // there are no ways starting with out
-            yield break;
+        if (from == to) {
+            return 1;
         }
 
         var fromDevice = Input.Single(d => d.Name == from);
-        foreach (var output in fromDevice.Outputs.Where(o => !checkedDevices.Contains(o))) {
-            foreach (var path in CalculatePaths(output, to, new HashSet<string>(checkedDevices))) {
-                yield return path;
-            }
+        var result = 0L;
+        
+        foreach (var output in fromDevice.Outputs) {
+            result += CalculatePathCount(output, to, checkedDevices);
         }
+
+        checkedDevices[from] = result;
+        return result;
     }
     
     public long CalculatePathsWithDevicesCount() {
@@ -57,16 +57,16 @@ public class Reactor {
 
     private long CalculatePathsWithDevicesCount(string device1, string device2) {
         // since the devices are connected in a single direction everything that comes after device1 can't be part of the solution
-        var svrToDevice1 = CalculatePaths("svr", device1, CalculateFollowers(device1)).LongCount();
+        var svrToDevice1 = CalculatePathCount("svr", device1, CalculateFollowers(device1).ToDictionary(d => d, _ => 0L));
         Debug.WriteLine($"svrToDevice1 = {svrToDevice1}");
         
         // we similarly remove the followers of device2 from the equation (we don't need to do anything for the devices before device1,
         // since we can't go back anyway
-        var device1ToDevice2 = CalculatePaths(device1, device2, CalculateFollowers(device2)).LongCount();
+        var device1ToDevice2 = CalculatePathCount(device1, device2, CalculateFollowers(device2).ToDictionary(d => d, _ => 0L));
         Debug.WriteLine($"device1ToDevice2 = {device1ToDevice2}");
 
         // and finally the last step of the way
-        var device2ToOut = CalculatePaths(device2, "out").LongCount();
+        var device2ToOut = CalculatePathCount(device2, "out");
         Debug.WriteLine($"device2ToOut = {device2ToOut}");
         
         // now multiply and hope none of these values is zero
