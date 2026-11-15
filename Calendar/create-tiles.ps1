@@ -10,6 +10,17 @@ function DoSomething($scriptBlock) {
     return $scriptBlock.Invoke()
 }
 
+function Get-LanguageColor($language) {
+    $colorEntry = $colorsJson.PSObject.Properties[$language]
+
+    if ($null -ne $colorEntry) {
+        return $colorEntry.Value.color
+    }
+
+    Write-Warning "No color defined for '$language'"
+    return "#FF0000"
+}
+
 # ----------------------------------------
 # Read all necessary JSON files
 # ----------------------------------------
@@ -25,7 +36,9 @@ if (!$environmentJson.Cookie) {
 
 $webClient = new-object system.net.webclient
 $webClient.Headers.add("Cookie", -join("session=", $environmentJson.Cookie))
-$colorsJson = $webClient.DownloadString("https://raw.githubusercontent.com/ozh/github-colors/master/colors.json") | ConvertFrom-Json
+# we use a specific commit that has both Mathematica and FreeBasic :D    
+$colorsJson = $webClient.DownloadString("https://raw.githubusercontent.com/ozh/github-colors/d03d551e5766a7ac1bd0ddf0dd608864391cc6e5/colors.json") | ConvertFrom-Json
+
 
 # ----------------------------------------
 # Create SVG tiles
@@ -50,11 +63,11 @@ foreach ($codeSet in $calendarJson.CodeSets) {
     if (!$calendarData.Contains($year)) {
         $calendarData[$year] = [ordered]@{ }
     }
-
+    
     if ($language -eq "auto") {
         $color = "#00FF00"
     } else {
-        $color = $colorsJson.PSObject.Properties[$language].PSObject.Properties["Value"].Value.PSObject.Properties["color"].Value # ???
+        $color = Get-LanguageColor($language)
     }
     if (!$color) {
         $color = "#FF0000"
@@ -155,7 +168,7 @@ foreach ($codeSet in $calendarJson.CodeSets) {
                             if ($possibleLanguage.Color) {
                                 $color = $possibleLanguage.Color
                             } else {
-                                $color = $colorsJson.PSObject.Properties[$usedLanguage].PSObject.Properties["Value"].Value.PSObject.Properties["color"].Value # ???
+                                $color = Get-LanguageColor($usedLanguage)
                             }
                             break
                         }

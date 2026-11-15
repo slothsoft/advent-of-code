@@ -24,7 +24,7 @@ On December 1st, do this:
 ## To-Do-List
 
 - move algorithms somewhere safe
-    - Dijkstra is in 2019-20 and 2021-15 and 2023-17
+    - Dijkstra is in 2019-20 and 2021-15 and 2023-17 and 2025-10
     - Direction is EVERYWHERE
     - Stringify of the parsed matrixes (maybe extract matrixes?)
     - how to calculate quadratic function: 2023-21
