@@ -37,7 +37,7 @@ if (!$environmentJson.Cookie) {
 $webClient = new-object system.net.webclient
 $webClient.Headers.add("Cookie", -join("session=", $environmentJson.Cookie))
 # we use a specific commit that has both Mathematica and FreeBasic :D    
-$colorsJson = $webClient.DownloadString("https://raw.githubusercontent.com/ozh/github-colors/d03d551e5766a7ac1bd0ddf0dd608864391cc6e5/colors.json") | ConvertFrom-Json
+$colorsJson = $webClient.DownloadString("https://raw.githubusercontent.com/ozh/github-colors/a2385548092828d1c7a482d0a26c413b7561276f/colors.json") | ConvertFrom-Json
 
 
 # ----------------------------------------
@@ -83,19 +83,37 @@ foreach ($codeSet in $calendarJson.CodeSets) {
 
     $leaderboardContent = $webClient.DownloadString("https://adventofcode.com/$year/leaderboard/self")
     # $leaderboardContent = [string] (gc "$PSScriptRoot\Examples\leaderboard-$year.html" -encoding utf8)
-    
-    $regex = '\d{1,2}\s+[^\s]+\s+\d+\s+\d+\s+[^\s]+\s+[\d-]+\s+[\d-]'
+
+    if ($year -ge 2025) {
+        # New format: Day, Part I Time, Part || Time
+        $regex = '\d{1,2}\s+[^\s]+\s+[^\s]+'
+    } else {
+        # Old format: Day, Part I (Time, Rank, Score), Part II (Time, Rank, Score)
+        $regex = '\d{1,2}\s+[^\s]+\s+\d+\s+\d+\s+[^\s]+\s+[\d-]+\s+[\d-]'
+    }
+
     $dailyScores = @{ }
     foreach ($score in ([regex]$regex).Matches($leaderboardContent)) {
         $scoreSplit = $score.Value.Trim() -split '\s+'
-        
-        $dailyScores[[int] $scoreSplit[0]] = @{
-            Part1Time = $scoreSplit[1]
-            Part1Rank = $scoreSplit[2]
-            Part1Score = $scoreSplit[3]
-            Part2Time = $scoreSplit[4]
-            Part2Rank = $scoreSplit[5]
-            Part2Score = $scoreSplit[6]
+
+        if ($year -ge 2025) {
+            $dailyScores[[int] $scoreSplit[0]] = @{
+                Part1Time = $scoreSplit[1]
+                Part1Rank = "-"
+                Part1Score = "-"
+                Part2Time = $scoreSplit[2]
+                Part2Rank = "-"
+                Part2Score = "-"
+            }
+        } else {
+            $dailyScores[[int] $scoreSplit[0]] = @{
+                Part1Time = $scoreSplit[1]
+                Part1Rank = $scoreSplit[2]
+                Part1Score = $scoreSplit[3]
+                Part2Time = $scoreSplit[4]
+                Part2Rank = $scoreSplit[5]
+                Part2Score = $scoreSplit[6]
+            }
         }
     }
 	

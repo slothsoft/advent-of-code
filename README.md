@@ -35,6 +35,19 @@ On December 1st, do this:
 
 
 
+# 2025
+
+<a href="./2025/01"><img src="./Calendar/Tiles/2025/01.svg" width="150px"></a>
+<a href="./2025/02"><img src="./Calendar/Tiles/2025/02.svg" width="150px"></a>
+<a href="./2025/03"><img src="./Calendar/Tiles/2025/03.svg" width="150px"></a>
+<a href="./2025/04"><img src="./Calendar/Tiles/2025/04.svg" width="150px"></a>
+<a href="./2025/05"><img src="./Calendar/Tiles/2025/05.svg" width="150px"></a>
+<a href="./2025/06"><img src="./Calendar/Tiles/2025/06.svg" width="150px"></a>
+<a href="./2025/07"><img src="./Calendar/Tiles/2025/07.svg" width="150px"></a>
+<a href="./2025/10"><img src="./Calendar/Tiles/2025/10.svg" width="150px"></a>
+<a href="./2025/11"><img src="./Calendar/Tiles/2025/11.svg" width="150px"></a>
+
+
 # 2024
 
 <a href="./2024/01"><img src="./Calendar/Tiles/2024/01.svg" width="150px"></a>

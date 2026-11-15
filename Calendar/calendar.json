@@ -1,6 +1,11 @@
 {
   "CodeSets": [
     {
+      "Year": "2025",
+      "Language": "C#",
+      "Directory": "2025"
+    },
+    {
       "Year": "2024",
       "Language": "C#",
       "Directory": "2024"
